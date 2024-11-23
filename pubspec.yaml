@@ -44,10 +44,10 @@ dependencies:
   shimmer: ^3.0.0
   firebase_core: ^3.8.0
   firebase_messaging: ^15.1.5
-  firebase_analytics: ^11.3.2
-  google_sign_in: ^6.2.1
+  firebase_analytics: ^11.3.5
+  google_sign_in: ^6.2.2
   sign_in_button: ^3.2.0
-  firebase_auth: ^5.3.0
+  firebase_auth: ^5.3.3
   shared_preferences: ^2.3.3
 
 

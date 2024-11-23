@@ -32,7 +32,7 @@ class AuthService {
       }
       if (token == null) {
         await googleSignIn.signOut();
-        print("Người dùng đã đăng xuất");
+        print("không có token");
       }
 
       final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
@@ -42,6 +42,8 @@ class AuthService {
       }
       return await _handleSignIn(googleUser);
     } catch (e) {
+      print(
+          '====================================================================================================================');
       print('Lỗi chi tiết: $e');
     }
   }
@@ -54,6 +56,8 @@ class AuthService {
       Uri.parse(ApiEndpoints.postGoogle),
       body: {'idToken': googleAuth.idToken},
     );
+    print(
+        '====================================================================================================================');
     print(googleAuth.idToken);
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = json.decode(response.body);

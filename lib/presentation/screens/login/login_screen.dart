@@ -60,10 +60,6 @@ class _LogginScreenState extends State<LogginScreen> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      // decoration: BoxDecoration(
-      //   image: DecorationImage(
-      //       image: AssetImage('assets/img.jpg'), fit: BoxFit.cover),
-      // ),
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
@@ -83,6 +79,7 @@ class _LogginScreenState extends State<LogginScreen> {
                   SizedBox(height: 40),
                   ElevatedButton.icon(
                     onPressed: () async {
+                      print('Google Sign-In ');
                       Map<String, dynamic>? user =
                           await AuthService().signInWithGoogle();
                       if (user != null) {

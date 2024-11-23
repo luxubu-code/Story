@@ -20,7 +20,11 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  await FirebaseApi().initNotifications();
+
+  // Gọi Firebase API an toàn
+  final firebaseApi = FirebaseApi();
+  await firebaseApi.initNotifications();
+
   await FirebaseMessaging.instance.setAutoInitEnabled(true);
   runApp(
     MultiProvider(

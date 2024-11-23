@@ -12,6 +12,7 @@ Future<void> handleBackgroundMessage(RemoteMessage message) async {
 
 class FirebaseApi {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
+  bool _isRequestingPermission = false; // Biến cờ
 
   void handleMessage(RemoteMessage? message) {
     if (message == null) return;
@@ -35,14 +36,23 @@ class FirebaseApi {
   }
 
   Future<void> initNotifications() async {
-    await _firebaseMessaging.requestPermission();
-    final fcmToken = await _firebaseMessaging.getToken();
-    if (fcmToken != null) {
-      await AuthService.sendFcm(fcmToken);
-      print('FCM Token: $fcmToken');
-    } else {
-      print('Failed to obtain FCM Token');
+    if (_isRequestingPermission) return; // Nếu đang yêu cầu, thoát
+    _isRequestingPermission = true;
+
+    try {
+      await _firebaseMessaging.requestPermission();
+      final fcmToken = await _firebaseMessaging.getToken();
+      if (fcmToken != null) {
+        await AuthService.sendFcm(fcmToken);
+        print('FCM Token: $fcmToken');
+      } else {
+        print('Failed to obtain FCM Token');
+      }
+      await initPushNotifications();
+    } catch (e) {
+      print('Error in requesting permission: $e');
+    } finally {
+      _isRequestingPermission = false; // Đặt lại biến cờ
     }
-    await initPushNotifications();
   }
 }

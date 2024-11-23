@@ -1,49 +1,42 @@
 {
   "project_info": {
-    "project_number": "657166917708",
-    "project_id": "stroy-ccd63",
-    "storage_bucket": "stroy-ccd63.firebasestorage.app"
+    "project_number": "972875575774",
+    "project_id": "story-80873",
+    "storage_bucket": "story-80873.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:657166917708:android:b482f32c16a7d6753014e9",
+        "mobilesdk_app_id": "1:972875575774:android:a7c0a7a4a3ca337cd56d4f",
         "android_client_info": {
           "package_name": "com.example.story"
         }
       },
       "oauth_client": [
         {
-          "client_id": "657166917708-dgguidn4dq0gvere4bco87nnue7ap798.apps.googleusercontent.com",
+          "client_id": "972875575774-8esf84dj3m9q1ml1ci1bqg7qkevcuo53.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.example.story",
-            "certificate_hash": "53267886937f375864b0fdcccd14adc2db9765e7"
+            "certificate_hash": "76b672f318801bc358b2a8d8f74eca86a3990dd1"
           }
         },
         {
-          "client_id": "657166917708-9dk7l4cde0rba9llebgs10st4pckl2il.apps.googleusercontent.com",
+          "client_id": "972875575774-m6e71cv7sdqd8bhoac8i75cfmquqfdec.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyCl_xDMspwT0_nMT_qo2D5HJlUvyCU39M4"
+          "current_key": "AIzaSyDSC3ilZYmsxDtmCvN1zljLjM8TDmUOmh4"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "657166917708-9dk7l4cde0rba9llebgs10st4pckl2il.apps.googleusercontent.com",
+              "client_id": "972875575774-m6e71cv7sdqd8bhoac8i75cfmquqfdec.apps.googleusercontent.com",
               "client_type": 3
-            },
-            {
-              "client_id": "657166917708-eilbvodsn4go5tr9avo4esg3qhp1387p.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "com.example.story"
-              }
             }
           ]
         }
