@@ -37,8 +37,8 @@ class CommentWidget extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CircleAvatar(
-                  backgroundImage: comment.user[0].image_path == null
-                      ? NetworkImage(comment.user[0].image_path!)
+                  backgroundImage: comment.user[0].avatar_url != ''
+                      ? NetworkImage(comment.user[0].avatar_url)
                       : AssetImage('assets/avatar.png') as ImageProvider,
                   radius: 24,
                 ),
@@ -141,8 +141,8 @@ class CommentWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             CircleAvatar(
-              backgroundImage: reply.user[0].image_path != null
-                  ? NetworkImage(reply.user[0].image_path!)
+              backgroundImage: reply.user[0].avatar_url != null
+                  ? NetworkImage(reply.user[0].avatar_url!)
                   : AssetImage('assets/avatar.png') as ImageProvider,
               radius: 18,
             ),

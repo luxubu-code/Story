@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:story/core/services/image_service.dart';
 
-import '../../../core/services/story_service.dart';
 import '../../../models/chapter.dart';
 import '../../../models/image.dart';
 import '../detail_story/widget/comment_page.dart';
@@ -24,14 +24,14 @@ class ChapterScreen extends StatefulWidget {
 
 class _ChapterScreenState extends State<ChapterScreen> {
   late Future<List<ImagePath>> images;
-  final StoryService storyService = StoryService();
+  final ImageService imageService = ImageService();
   late ScrollController _scrollController;
   bool _isBottomVisible = true; // Đảm bảo tên biến này đúng
 
   @override
   void initState() {
     super.initState();
-    images = storyService.fetchImage(widget.chapter_id);
+    images = imageService.fetchImage(widget.chapter_id);
     _scrollController = ScrollController();
     _scrollController.addListener(
       () {

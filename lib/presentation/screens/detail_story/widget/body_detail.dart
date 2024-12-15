@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:story/core/constants/AppColors.dart';
+import 'package:story/core/services/comment_service.dart';
 
-import '../../../../core/services/story_service.dart';
 import '../../../../core/utils/future_widget.dart';
 import '../../../../models/category.dart';
 import '../../../../models/comment.dart';
@@ -30,7 +31,7 @@ class BodyDetail extends StatefulWidget {
 
 class _BodyDetailState extends State<BodyDetail> {
   late Future<List<Comment>> _futureComment;
-  final StoryService _storyService = StoryService();
+  final CommentService _commentService = CommentService();
   late CommentPage commentPage = CommentPage(story_id: widget.story_id);
 
   @override
@@ -40,7 +41,7 @@ class _BodyDetailState extends State<BodyDetail> {
   }
 
   void _loadComment() {
-    _futureComment = _storyService.fetchMostLikesComment(1, widget.story_id);
+    _futureComment = _commentService.fetchMostLikesComment(1, widget.story_id);
   }
 
   void showComments() {
@@ -56,63 +57,52 @@ class _BodyDetailState extends State<BodyDetail> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            CategoryWidget(widget.categories),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                'Status : ${widget.status == 1 ? 'Đang ra' : 'Hoàn Thành'}',
-                style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.normal,
-                    color: Colors.black,
-                    overflow: TextOverflow.fade),
+    return SingleChildScrollView(
+      child: Stack(
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CategoryWidget(widget.categories),
+              Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: RichText(
+                    text: TextSpan(
+                      text: 'Status : ', // Phần này không đổi màu
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.normal,
+                        color: Colors.white,
+                      ),
+                      children: [
+                        TextSpan(
+                          text: widget.status == 1 ? 'Hoàn Thành' : 'Đang ra',
+                          style: TextStyle(
+                            color: widget.status == 1
+                                ? AppColors.cornflowerBlue
+                                : AppColors.magentaPurple,
+                            fontWeight: FontWeight
+                                .bold, // Tùy chọn in đậm cho trạng thái
+                          ),
+                        ),
+                      ],
+                    ),
+                  )),
+              ExpandableText(description: widget.description),
+              ShowMore(
+                title: 'Bình Luận Nổi Bật',
+                onShowMore: showComments,
+                border: false,
               ),
-            ),
-            ExpandableText(description: widget.description),
-            ShowMore(
-              title: 'Bình Luận Nổi Bật',
-              onShowMore: showComments,
-              border: false,
-            ),
-            buildFuture(
-              futureList: _futureComment,
-              itemBuilder: (context, comment) =>
-                  CommentWidget(comment: comment),
-            ),
-          ],
-        ),
-        Positioned(
-          bottom: 0,
-          right: 0,
-          left: 0,
-          child: Container(
-            padding: const EdgeInsets.all(8.0),
-            width: MediaQuery.of(context).size.width,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.pinkAccent,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+              buildFuture(
+                futureList: _futureComment,
+                itemBuilder: (context, comment) =>
+                    CommentWidget(comment: comment),
               ),
-              onPressed: () {},
-              child: Text(
-                'Read Comic',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
+            ],
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

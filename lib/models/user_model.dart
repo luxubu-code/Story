@@ -2,9 +2,9 @@ class UserModel {
   final int id;
   final String name;
   final String email;
-  final String image_path;
+  final String avatar_url;
   final DateTime created_at;
-  final DateTime updated_at;
+  final String date_of_birth;
   final String fcmToken;
   final String googleId;
 
@@ -12,9 +12,9 @@ class UserModel {
     required this.id,
     required this.name,
     required this.email,
-    required this.image_path,
+    required this.avatar_url,
     required this.created_at,
-    required this.updated_at,
+    required this.date_of_birth,
     required this.fcmToken,
     required this.googleId,
   });
@@ -25,24 +25,22 @@ class UserModel {
       id: json['id'] ?? 0,
       name: json['name'] ?? '',
       email: json['email'] ?? '',
-      image_path: json['image_path'] ?? '',
+      avatar_url: json['avatar_url'] ?? '',
       created_at: json['created_at'] != null
           ? DateTime.parse(json['created_at'])
           : DateTime.now(),
-      updated_at: json['updated_at'] != null
-          ? DateTime.parse(json['updated_at'])
-          : DateTime.now(),
+      date_of_birth: json['date_of_birth'] ?? '',
       fcmToken: json['fcm_token'] ?? '',
       googleId: json['google_id'] ?? '',
     );
   }
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
       'name': name,
       'email': email,
       'created_at': created_at.toIso8601String(),
-      'updated_at': updated_at.toIso8601String(),
       'fcm_token': fcmToken,
       'google_id': googleId,
     };

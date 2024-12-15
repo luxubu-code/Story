@@ -1,33 +1,36 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:story/core/constants/AppColors.dart';
 import 'package:story/presentation/screens/detail_story/widget/body_chapter.dart';
+import 'package:story/presentation/screens/detail_story/widget/body_rating.dart';
 
 import '../../../core/services/story_service.dart';
 import '../../../models/story.dart';
 import 'widget/avatar_detail_story.dart';
 import 'widget/body_detail.dart';
 
-class StoryDetailPage extends StatefulWidget {
+class DetailStoryScreen extends StatefulWidget {
   final int story_id;
   final VoidCallback onShowComments;
 
-  const StoryDetailPage(
+  const DetailStoryScreen(
       {super.key, required this.story_id, required this.onShowComments});
 
   @override
-  _StoryDetailPageState createState() => _StoryDetailPageState();
+  _DetailStoryScreenState createState() => _DetailStoryScreenState();
 }
 
-class _StoryDetailPageState extends State<StoryDetailPage>
+class _DetailStoryScreenState extends State<DetailStoryScreen>
     with SingleTickerProviderStateMixin {
   late bool isExists;
   late Future<Story> futureStory;
   final StoryService storyService = StoryService();
   late TabController _tabController;
   static const List<Tab> myTabs = <Tab>[
-    Tab(text: 'Detail'),
-    Tab(text: 'Chapter'),
+    Tab(text: 'Chi tiết'),
+    Tab(text: 'Đánh giá'),
+    Tab(text: 'Danh sách chương'),
   ];
 
   @override
@@ -46,7 +49,7 @@ class _StoryDetailPageState extends State<StoryDetailPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.thistle,
       body: FutureBuilder<Story>(
         future: futureStory,
         builder: (context, snapshot) {
@@ -86,20 +89,21 @@ class _StoryDetailPageState extends State<StoryDetailPage>
                       children: [
                         buildStat(story.favourite.toString(), 'Lượt thích'),
                         buildStat(story.views.toString(), 'Độ hot'),
-                        buildStat('4,5 ★', '1183 người đánh giá'),
+                        buildStat(
+                            '${story.averageRating.toString()} ★', 'đánh giá'),
                       ],
                     ),
                   ),
                   Container(
                     color: Colors.grey[800],
                     child: TabBar(
-                      dividerColor: Colors.pinkAccent,
-                      dividerHeight: 2,
+                      dividerColor: AppColors.magentaPurple,
+                      dividerHeight: 1,
                       unselectedLabelColor: Colors.grey,
                       indicatorColor: Colors.white,
                       tabs: myTabs,
                       controller: _tabController,
-                      labelColor: Colors.pinkAccent,
+                      labelColor: AppColors.magentaPurple,
                     ),
                   ),
                   Expanded(
@@ -108,11 +112,19 @@ class _StoryDetailPageState extends State<StoryDetailPage>
                       children: [
                         Container(
                           decoration: BoxDecoration(color: Colors.grey[800]),
-                          child: BodyDetail(
-                            story_id: story.story_id,
-                            status: story.status,
-                            categories: story.categories,
-                            description: story.description,
+                          child: SingleChildScrollView(
+                            child: BodyDetail(
+                              story_id: story.story_id,
+                              status: story.status,
+                              categories: story.categories,
+                              description: story.description,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          decoration: BoxDecoration(color: Colors.grey[800]),
+                          child: SingleChildScrollView(
+                            child: BodyRating(story_id: story.story_id),
                           ),
                         ),
                         Container(
@@ -123,6 +135,28 @@ class _StoryDetailPageState extends State<StoryDetailPage>
                           ),
                         ),
                       ],
+                    ),
+                  ),
+                  Container(
+                    decoration: BoxDecoration(color: Colors.grey[800]),
+                    padding: const EdgeInsets.all(8.0),
+                    width: MediaQuery.of(context).size.width,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.pinkAccent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: () {},
+                      child: Text(
+                        'Đọc truyện',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ),
                 ],
