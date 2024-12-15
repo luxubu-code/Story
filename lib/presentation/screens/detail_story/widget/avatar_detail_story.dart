@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:story/core/services/favourite_service.dart';
+import 'package:story/core/utils/navigation_utils.dart';
+import 'package:story/presentation/screens/download/download_screen.dart';
 
 import '../../../../core/services/auth_provider_check.dart';
-import '../../../../core/services/story_service.dart';
 import '../../login/login_screen.dart';
 
 class AvatarDetailStory extends StatefulWidget {
@@ -24,9 +26,8 @@ class AvatarDetailStory extends StatefulWidget {
 
 class _AvatarDetailStoryState extends State<AvatarDetailStory> {
   bool isExists = false;
-  final StoryService storyService = StoryService();
+  final FavouriteService favouriteService = FavouriteService();
 
-  //late Future<String?> token;
   @override
   void initState() {
     super.initState();
@@ -35,34 +36,31 @@ class _AvatarDetailStoryState extends State<AvatarDetailStory> {
 
   Future<void> _checkIfStoryIsFavourite() async {
     bool isFavourite =
-        await storyService.checkStoriesFavourite(widget.story_id);
+        await favouriteService.checkStoriesFavourite(widget.story_id);
     setState(() {
       isExists = isFavourite;
     }); // Trigger a rebuild to reflect the new value of isExists
   }
 
   void _toggleFavourite() async {
-    bool success;
-    if (isExists) {
-      success = await storyService.deleteStoriesFavourite(widget.story_id);
-      if (!success) {
-        setState(() {
-          isExists = false;
-        });
-        _showSnackBar('Đã xóa khỏi yêu thích');
-      } else {
-        _showSnackBar('Xóa khỏi yêu thích thất bại');
-      }
-    } else {
-      success = await storyService.postStoriesFavourite(widget.story_id);
+    try {
+      bool success = isExists
+          ? await favouriteService.deleteStoriesFavourite(widget.story_id)
+          : await favouriteService.postStoriesFavourite(widget.story_id);
+
       if (success) {
         setState(() {
-          isExists = true;
+          isExists = !isExists;
         });
-        _showSnackBar('Đã thêm vào yêu thích');
+        _showSnackBar(
+            isExists ? 'Đã thêm vào yêu thích' : 'Đã xóa khỏi yêu thích');
       } else {
-        _showSnackBar('Thêm vào yêu thích thất bại');
+        _showSnackBar(isExists
+            ? 'Xóa khỏi yêu thích thất bại'
+            : 'Thêm vào yêu thích thất bại');
       }
+    } catch (e) {
+      _showSnackBar('Có lỗi xảy ra');
     }
   }
 
@@ -82,14 +80,24 @@ class _AvatarDetailStoryState extends State<AvatarDetailStory> {
           child: Stack(
             children: [
               ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: Image.network(
-                  widget.image_path,
-                  height: MediaQuery.of(context).size.height * 0.3,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                ),
-              ),
+                  borderRadius: BorderRadius.circular(10),
+                  child: Image.network(
+                    widget.image_path,
+                    height: MediaQuery.of(context).size.height * 0.3,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      height: MediaQuery.of(context).size.height * 0.3,
+                      color: Colors.grey,
+                      child: Icon(Icons.error),
+                    ),
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    },
+                  )),
               Positioned.fill(
                 child: Container(
                   decoration: BoxDecoration(
@@ -176,7 +184,15 @@ class _AvatarDetailStoryState extends State<AvatarDetailStory> {
                         ),
                       ),
                       SizedBox(width: 12),
-                      Icon(Icons.download, color: Colors.white),
+                      GestureDetector(
+                        onTap: () => NavigationUtils.navigateTo(
+                            context, DownloadScreen()),
+                        child: Icon(
+                          Icons.download,
+                          color: Colors.white,
+                          size: 32,
+                        ),
+                      ),
                     ],
                   ),
                 ),

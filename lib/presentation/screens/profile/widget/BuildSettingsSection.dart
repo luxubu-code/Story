@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:story/storage/secure_tokenstorage.dart';
+import 'package:story/core/utils/navigation_utils.dart';
+import 'package:story/presentation/screens/edit_profile/edit_profile_screen.dart';
 
 import '../../../../core/services/auth_service.dart';
 import '../../../../core/services/clear_cache.dart';
@@ -14,7 +15,7 @@ Widget BuildSettingsSection(BuildContext context, bool isLoggedIn) {
         SettingsSection([
           Center(
             child: Text(
-              'Settings',
+              'Cài đặt',
               style: TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.w700,
@@ -32,8 +33,18 @@ Widget BuildSettingsSection(BuildContext context, bool isLoggedIn) {
           ),
           SizedBox(height: 8),
           SettingsOptionItem(
+            icon: Icons.edit,
+            title: 'Thông tin tài khoản',
+            onTap: () {
+              NavigationUtils.navigateTo(context, EditProfileScreen());
+            },
+            showArrow: true,
+            isLoggedIn: isLoggedIn,
+          ),
+          SizedBox(height: 8),
+          SettingsOptionItem(
             icon: Icons.delete,
-            title: 'Clear cache',
+            title: 'Xóa bộ nhớ tạm',
             onTap: () {
               ClearCache().clearAllCache(context);
             },
@@ -43,7 +54,7 @@ Widget BuildSettingsSection(BuildContext context, bool isLoggedIn) {
           SizedBox(height: 8),
           SettingsOptionItem(
             icon: Icons.language,
-            title: 'Language',
+            title: 'Ngôn ngữ',
             onTap: () {},
             showArrow: true,
             isLoggedIn: isLoggedIn,
@@ -51,13 +62,13 @@ Widget BuildSettingsSection(BuildContext context, bool isLoggedIn) {
           SizedBox(height: 8),
           SettingsOptionItem(
             icon: Icons.doorbell_rounded,
-            title: 'Notification',
+            title: 'Thông Báo',
             onTap: () {},
             showArrow: true,
             isLoggedIn: isLoggedIn,
           ),
           SizedBox(height: 8),
-          if (true)
+          if (isLoggedIn)
             Column(
               children: [
                 SizedBox(height: 8),
@@ -67,8 +78,6 @@ Widget BuildSettingsSection(BuildContext context, bool isLoggedIn) {
                   showArrow: false,
                   isLoggedIn: isLoggedIn,
                   onTap: () async {
-                    print('=============================================');
-                    print(SecureTokenStorage.getToken().toString());
                     await AuthService.logout(context);
                   },
                 ),

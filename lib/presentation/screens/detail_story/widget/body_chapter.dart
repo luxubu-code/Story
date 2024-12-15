@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:story/core/services/history_service.dart';
 
-import '../../../../core/services/story_service.dart';
 import '../../../../core/utils/dateTimeFormatUtils.dart';
 import '../../../../models/chapter.dart';
 import '../../chapter/chapter_screen.dart';
@@ -20,7 +20,7 @@ class BodyChapter extends StatefulWidget {
 }
 
 class _BodyChapterState extends State<BodyChapter> {
-  final StoryService storyService = StoryService();
+  final HistoryService historyService = HistoryService();
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +33,7 @@ class _BodyChapterState extends State<BodyChapter> {
 
         return GestureDetector(
           onTap: () {
-            storyService.postHistory(widget.story_id, chapter.chapter_id);
+            historyService.postHistory(widget.story_id, chapter.chapter_id);
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -110,7 +110,7 @@ class _BodyChapterState extends State<BodyChapter> {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            '100', // Placeholder for view count
+                            chapter.views.toString(),
                             style: TextStyle(
                                 color: Colors.white.withOpacity(0.7),
                                 fontSize: 14),

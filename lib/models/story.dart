@@ -10,6 +10,7 @@ class Story {
   final String description;
   final int views;
   final int status;
+  final int totalChapter;
   final int favourite;
   final String image_path;
   final DateTime created_at;
@@ -32,6 +33,7 @@ class Story {
       required this.status,
       required this.favourite,
       required this.image_path,
+      required this.totalChapter,
       required this.author,
       required this.averageRating,
       required this.ratings,
@@ -46,6 +48,7 @@ class Story {
       views: json['views'] ?? 0,
       status: json['status'] ?? 1,
       favourite: json['favourite'] ?? 0,
+      totalChapter: json['totalChapter'] ?? 0,
       image_path: json['image_path'] ?? '',
       updated_at: json['updated_at'] != null
           ? DateTime.parse(json['updated_at'])
@@ -85,7 +88,7 @@ class Story {
 //     'views': views,
 //     'base_url': base_url,
 //     'file_name': file_name,
-  //     'created_at': created_at.toIso8601String(),
+//     'created_at': created_at.toIso8601String(),
 //     'updated_at': updated_at.toIso8601String(),
 //     'averageRating': averageRating,
 //     'ratings': ratings.map((rating) => rating.toJson()).toList(),

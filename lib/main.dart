@@ -1,9 +1,12 @@
+import 'dart:io' show Platform;
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:story/presentation/widgets/show_more_list.dart';
+import 'package:story/core/constants/AppColors.dart';
+import 'package:story/presentation/screens/rank/rank_screen.dart';
 
 import 'core/services/auth_provider_check.dart';
 import 'firebase_options.dart';
@@ -25,7 +28,10 @@ void main() async {
   final firebaseApi = FirebaseApi();
   await firebaseApi.initNotifications();
 
-  await FirebaseMessaging.instance.setAutoInitEnabled(true);
+  if (Platform.isAndroid) {
+    // Chỉ chạy logic Firebase Messaging trên Android/iOS.
+    await FirebaseMessaging.instance.setAutoInitEnabled(true);
+  }
   runApp(
     MultiProvider(
       providers: [ChangeNotifierProvider(create: (_) => AuthProviderCheck())],
@@ -79,15 +85,12 @@ class _MyHomePageState extends State<MyHomePage> {
     _pageController.jumpToPage(index);
   }
 
-  static List<Widget> _pages = <Widget>[
-    NewStoryListPage(),
-    ShowMoreList(
-      title: '',
-    ),
-    FavouritePage(),
-    NotificationsPage(),
-    ProfilePage(),
-  ];
+  List<Widget> get _pages => [
+        NewStoryListPage(key: PageStorageKey('home')),
+        RankScreen(title: '', key: PageStorageKey('showMore')),
+        FavouritePage(key: PageStorageKey('favourite')),
+        ProfilePage(key: PageStorageKey('profile')),
+      ];
 
   @override
   Widget build(BuildContext context) {
@@ -105,41 +108,26 @@ class _MyHomePageState extends State<MyHomePage> {
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
-            label: 'Home',
+            label: 'Trang chủ',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.leaderboard),
-            label: 'Leaderboard',
+            label: 'Xếp hạng',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.favorite),
-            label: 'Favorites',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.notifications),
-            label: 'Notifications',
+            label: 'Tủ truyện',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.account_box_outlined),
-            label: 'Profile',
+            label: 'Tài khoản',
           ),
         ],
         currentIndex: _selectedIndex,
-        selectedItemColor: Colors.purple,
-        unselectedItemColor: Colors.grey,
+        selectedItemColor: AppColors.rebeccaPurple,
+        unselectedItemColor: AppColors.thistle,
         onTap: _onTap,
       ),
     );
-  }
-}
-
-class NotificationsPage extends StatelessWidget {
-  const NotificationsPage({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-        child: Text('Notifications Page Content',
-            style: TextStyle(color: Colors.purple, fontSize: 18)));
   }
 }

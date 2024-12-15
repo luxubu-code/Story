@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../core/services/auth_provider_check.dart';
-import '../../../models/user_model.dart';
-import '../../../storage/secure_tokenstorage.dart';
+import '../../../../core/services/auth_provider_check.dart';
+import '../../../../models/user_model.dart';
+import '../../../../storage/secure_tokenstorage.dart';
 
 class UserWidget extends StatelessWidget {
   @override

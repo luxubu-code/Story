@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:story/core/constants/AppColors.dart';
 
 class ShowMore extends StatelessWidget {
   final String title;
@@ -31,7 +32,7 @@ class ShowMore extends StatelessWidget {
               overflow: TextOverflow.fade,
               maxLines: 1,
               style: const TextStyle(
-                color: Colors.black,
+                color: AppColors.magentaPurple,
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
               ),

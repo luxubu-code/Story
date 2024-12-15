@@ -24,7 +24,7 @@ Widget CategoryWidget(List<Category> categories) {
                 child: Text(
                   categories[index].title!,
                   style: TextStyle(
-                    color: Colors.white70,
+                    color: Colors.white,
                     fontSize: 14,
                   ),
                 ),

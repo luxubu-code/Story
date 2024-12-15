@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:story/core/constants/AppColors.dart';
 
 class ExpandableText extends StatefulWidget {
   final String description;
 
   const ExpandableText({super.key, required this.description});
+
   @override
   _ExpandableText createState() => _ExpandableText();
 }
 
 class _ExpandableText extends State<ExpandableText> {
   bool selected = false;
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -24,6 +27,11 @@ class _ExpandableText extends State<ExpandableText> {
               padding:
                   EdgeInsets.only(left: 10, right: 10, top: 10, bottom: 25),
               decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFFe0c3fc), Color(0xFF8ec5fc)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
                   color: Colors.pinkAccent,
                   borderRadius: BorderRadius.circular(10)),
               child: Column(
@@ -35,7 +43,7 @@ class _ExpandableText extends State<ExpandableText> {
                         : MediaQuery.of(context).size.width,
                     child: Text(
                       widget.description,
-                      style: TextStyle(color: Colors.white),
+                      style: TextStyle(color: Colors.black),
                       maxLines: selected ? null : 3,
                       overflow: selected
                           ? TextOverflow.visible
@@ -59,13 +67,14 @@ class _ExpandableText extends State<ExpandableText> {
                     },
                     icon: Container(
                       decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.pinkAccent)),
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.amethystPurple),
+                      ),
                       child: Icon(
                         selected ? Icons.arrow_drop_up : Icons.arrow_drop_down,
                         size: 30,
-                        color: Colors.pinkAccent,
+                        color: AppColors.amethystPurple,
                       ),
                     )),
               ),

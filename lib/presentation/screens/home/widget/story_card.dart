@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../models/story.dart';
-import '../../detail_story/story_detail.dart';
+import '../../detail_story/detail_story_screen.dart';
 
 class StoryCard extends StatelessWidget {
   final Story story;
@@ -18,7 +18,7 @@ class StoryCard extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => StoryDetailPage(
+        builder: (context) => DetailStoryScreen(
           story_id: story.story_id,
           onShowComments: () {},
         ),

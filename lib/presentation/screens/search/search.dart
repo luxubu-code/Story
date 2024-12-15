@@ -6,7 +6,7 @@ import 'package:story/presentation/screens/search/widget/custom_search_bar.dart'
 import '../../../core/services/story_service.dart';
 import '../../../core/utils/loadding.dart';
 import '../../../models/story.dart';
-import '../../widgets/defaul_list.dart';
+import '../../widgets/default_list.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -66,7 +66,10 @@ class _SearchScreenState extends State<SearchScreen> {
                   } else if (snapshot.hasError) {
                     return Center(child: Text('Error: ${snapshot.error}'));
                   } else if (snapshot.hasData) {
-                    return DefaulList(stories: snapshot.data!);
+                    return DefaultList(
+                      stories: snapshot.data!,
+                      viewsOrRead: true,
+                    );
                   } else {
                     return const Center(child: Text('No stories found.'));
                   }

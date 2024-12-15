@@ -81,7 +81,7 @@ class _LogginScreenState extends State<LogginScreen> {
                     onPressed: () async {
                       print('Google Sign-In ');
                       Map<String, dynamic>? user =
-                          await AuthService().signInWithGoogle();
+                          await AuthService().signInWithGoogle(context);
                       if (user != null) {
                         Snack_Bar('Google Sign-In successful');
                         Navigator.pushAndRemoveUntil(

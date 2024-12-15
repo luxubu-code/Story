@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:story/core/services/comment_service.dart';
 
-import '../../../../core/services/story_service.dart';
 import '../../../../core/utils/future_widget.dart';
 import '../../../../models/comment.dart';
 import 'comment_widget.dart';
@@ -17,7 +17,7 @@ class CommentPage extends StatefulWidget {
 class _CommentPageState extends State<CommentPage> {
   late Future<List<Comment>> _futureComments;
   late TextEditingController _commentController = TextEditingController();
-  final StoryService _storyService = StoryService();
+  final CommentService _commentService = CommentService();
 
   @override
   void initState() {
@@ -32,7 +32,7 @@ class _CommentPageState extends State<CommentPage> {
   }
 
   void _loadComment() {
-    _futureComments = _storyService.fetchComment(widget.story_id);
+    _futureComments = _commentService.fetchComment(widget.story_id);
   }
 
   @override
@@ -146,7 +146,7 @@ class _CommentPageState extends State<CommentPage> {
     return GestureDetector(
       onTap: () async {
         if (_commentController.text.isNotEmpty) {
-          bool success = await _storyService.postComment(
+          bool success = await _commentService.postComment(
               widget.story_id, null, _commentController.text);
           if (success) {
             _commentController.clear();

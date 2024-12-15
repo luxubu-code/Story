@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:story/core/services/favourite_service.dart';
+import 'package:story/core/services/history_service.dart';
 
-import '../../../core/services/story_service.dart';
+import '../../../core/constants/AppColors.dart';
 import '../../../models/story.dart';
 import '../../../storage/secure_tokenstorage.dart';
 import '../../widgets/list_story_builder.dart';
@@ -16,14 +18,15 @@ class FavouritePage extends StatefulWidget {
 class _FavouritePageState extends State<FavouritePage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  final StoryService _storyService = StoryService();
+  final FavouriteService _favouriteService = FavouriteService();
+  final HistoryService _historyService = HistoryService();
   late Future<List<Story>> _futureStories;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _futureStories = _loadStories(); // Khởi tạo dữ liệu ban đầu
+    _futureStories = _loadStories();
     _tabController.addListener(_onTabChanged);
   }
 
@@ -47,37 +50,46 @@ class _FavouritePageState extends State<FavouritePage>
       return [];
     }
     if (_tabController.index == 0) {
-      return await _storyService.fetchHistory();
+      return await _historyService.fetchHistory();
     } else {
-      return await _storyService.fetchStoriesFavourite();
+      return await _favouriteService.fetchStoriesFavourite();
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Trang Yêu Thích'),
-        bottom: TabBar(
-          controller: _tabController,
-          unselectedLabelColor: Colors.grey,
-          indicatorColor: Colors.white,
-          labelColor: Colors.pinkAccent,
-          tabs: const [
-            Tab(text: 'Lịch Sử Đọc'),
-            Tab(text: 'Yêu Thích'),
-          ],
-        ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
+      body: Column(
         children: [
-          LoginContentBuilder(
-              futureStories: _futureStories,
-              storyBuilder: (stories) => ListStoryBuilder(stories: stories)),
-          LoginContentBuilder(
-              futureStories: _futureStories,
-              storyBuilder: (stories) => ListStoryBuilder(stories: stories)),
+          TabBar(
+            controller: _tabController,
+            dividerColor: AppColors.magentaPurple,
+            dividerHeight: 2,
+            unselectedLabelColor: Colors.grey,
+            indicatorColor: Colors.white,
+            labelColor: AppColors.magentaPurple,
+            tabs: const [
+              Tab(text: 'Lịch Sử Đọc'),
+              Tab(text: 'Yêu Thích'),
+            ],
+          ),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                LoginContentBuilder(
+                    futureStories: _futureStories,
+                    storyBuilder: (stories) => ListStoryBuilder(
+                          stories: stories,
+                          context: context,
+                        )),
+                LoginContentBuilder(
+                    futureStories: _futureStories,
+                    storyBuilder: (stories) =>
+                        ListStoryBuilder(stories: stories, context: context)),
+              ],
+            ),
+          ),
         ],
       ),
     );

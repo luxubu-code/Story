@@ -12,6 +12,8 @@ import 'widget/story_card.dart';
 import 'widget/story_list.dart';
 
 class NewStoryListPage extends StatefulWidget {
+  const NewStoryListPage({super.key});
+
   @override
   _NewStoryListPageState createState() => _NewStoryListPageState();
 }
@@ -83,7 +85,7 @@ class _NewStoryListPageState extends State<NewStoryListPage> {
                         enlargeCenterPage: true,
                         autoPlay: true,
                         enableInfiniteScroll: true,
-                        autoPlayAnimationDuration: const Duration(seconds: 1)),
+                        autoPlayAnimationDuration: const Duration(seconds: 3)),
                   ),
                 ),
                 ShowMore(

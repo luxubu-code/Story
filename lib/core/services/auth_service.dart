@@ -19,7 +19,7 @@ class AuthService {
   final GoogleSignIn googleSignIn = GoogleSignIn();
   final FirebaseAuth auth = FirebaseAuth.instance;
 
-  Future<Map<String, dynamic>?> signInWithGoogle() async {
+  Future<Map<String, dynamic>?> signInWithGoogle(BuildContext context) async {
     // Kiểm tra xem đã có người dùng đăng nhập sẵn chưa
     try {
       final GoogleSignInAccount? currentUser =
@@ -28,7 +28,7 @@ class AuthService {
 
       if (currentUser != null) {
         print("Người dùng đã đăng nhập sẵn: ${currentUser.email}");
-        return await _handleSignIn(currentUser);
+        return await _handleSignIn(currentUser, context);
       }
       if (token == null) {
         await googleSignIn.signOut();
@@ -40,7 +40,7 @@ class AuthService {
         print("Người dùng đã hủy đăng nhập");
         return null;
       }
-      return await _handleSignIn(googleUser);
+      return await _handleSignIn(googleUser, context);
     } catch (e) {
       print(
           '====================================================================================================================');
@@ -49,7 +49,7 @@ class AuthService {
   }
 
   Future<Map<String, dynamic>> _handleSignIn(
-      GoogleSignInAccount googleUser) async {
+      GoogleSignInAccount googleUser, BuildContext context) async {
     final GoogleSignInAuthentication googleAuth =
         await googleUser.authentication;
     final response = await http.post(
@@ -62,6 +62,16 @@ class AuthService {
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = json.decode(response.body);
       await SecureTokenStorage.saveToken(data['access_token']);
+      final token = data['access_token'];
+
+      if (token != null) {
+        final authProvider =
+            Provider.of<AuthProviderCheck>(context, listen: false);
+        await authProvider.login(token);
+        print('Login successful, token saved.');
+      } else {
+        print('Login failed: Token not found in response.');
+      }
       UserModel user = UserModel.fromJson(data['user']);
       await SecureTokenStorage.saveUser(user);
       return data;
@@ -197,5 +207,96 @@ class AuthService {
       ),
       (Route<dynamic> route) => false,
     );
+  }
+
+  Future<void> updateUserAccount({
+    required String token,
+    required String name,
+    required String dateOfBirth,
+    String? imagePath,
+    required BuildContext context,
+  }) async {
+    // URL endpoint của API
+    final url = Uri.parse(ApiEndpoints.updateProfile);
+
+    // Tạo request Multipart
+    final request = http.MultipartRequest('POST', url)
+      ..headers['Authorization'] = 'Bearer $token' // Gửi token xác thực
+      ..fields['name'] = name
+      ..fields['date_of_birth'] = dateOfBirth;
+    if (imagePath != null && imagePath.isNotEmpty) {
+      try {
+        request.files
+            .add(await http.MultipartFile.fromPath('image', imagePath));
+      } catch (e) {
+        Snack_Bar('Không thể tải lên hình ảnh: $e');
+        return;
+      }
+    }
+
+    try {
+      final response = await request.send();
+      if (response.statusCode == 200) {
+        final responseBody = await response.stream.bytesToString();
+        final data = jsonDecode(responseBody);
+        Snack_Bar('Cập nhật thông tin thành công');
+        print('Cập nhật thành công: ${data['message']}');
+      } else {
+        final responseBody = await response.stream.bytesToString();
+        final errorData = jsonDecode(responseBody);
+        Snack_Bar('Cập nhật thất bại: ${errorData['message']}');
+        print('Chi tiết lỗi: ${errorData['errors']}');
+      }
+    } catch (e) {
+      Snack_Bar('Lỗi trong quá trình cập nhật: $e');
+      print('Lỗi khi cập nhật tài khoản: $e');
+    }
+  }
+
+  Future<UserModel> fetchUser() async {
+    String? token = await SecureTokenStorage.getToken();
+    final headers = {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    };
+    try {
+      final response = await http
+          .get(Uri.parse(ApiEndpoints.getUser), headers: headers)
+          .timeout(const Duration(seconds: 100)); // Giới hạn thời gian chờ
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = json.decode(response.body);
+
+        if (jsonResponse['status'] == 'success' &&
+            jsonResponse['data'] != null) {
+          return UserModel.fromJson(jsonResponse['data']);
+        } else {
+          final errorMessage =
+              'API Error: ${jsonResponse['message'] ?? 'Unknown error'}';
+          print(errorMessage);
+          throw Exception(errorMessage);
+        }
+      } else {
+        final errorMessage =
+            'Failed to fetch user data: ${response.reasonPhrase}';
+        print(errorMessage);
+        throw HttpException(
+          errorMessage,
+          uri: Uri.parse(ApiEndpoints.getUser),
+        );
+      }
+    } on SocketException catch (e) {
+      final errorMessage = 'No Internet connection: $e';
+      print(errorMessage);
+      throw Exception(errorMessage);
+    } on TimeoutException catch (e) {
+      final errorMessage = 'Connection timeout: $e';
+      print(errorMessage);
+      throw Exception(errorMessage);
+    } catch (e) {
+      final errorMessage = 'Unexpected error: $e';
+      print(errorMessage);
+      throw Exception(errorMessage);
+    }
   }
 }

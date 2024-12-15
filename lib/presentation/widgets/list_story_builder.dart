@@ -2,28 +2,20 @@ import 'package:flutter/material.dart';
 
 import '../../core/utils/dateTimeFormatUtils.dart';
 import '../../models/story.dart';
-import '../screens/detail_story/story_detail.dart';
+import '../screens/detail_story/detail_story_screen.dart';
 
-class ListStoryBuilder extends StatefulWidget {
+class ListStoryBuilder extends StatelessWidget {
   final List<Story> stories;
+  final BuildContext context;
 
-  const ListStoryBuilder({super.key, required this.stories});
-
-  @override
-  State<ListStoryBuilder> createState() => _ListStoryBuilderState();
-}
-
-class _ListStoryBuilderState extends State<ListStoryBuilder> {
-  @override
-  void initState() {
-    super.initState();
-  }
+  const ListStoryBuilder(
+      {super.key, required this.stories, required this.context});
 
   void toDetailStory(id) {
     Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => StoryDetailPage(
+          builder: (context) => DetailStoryScreen(
             story_id: id,
             onShowComments: () {},
           ),
@@ -31,16 +23,11 @@ class _ListStoryBuilderState extends State<ListStoryBuilder> {
   }
 
   @override
-  void dispose() {
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return ListView.builder(
-      itemCount: widget.stories.length,
+      itemCount: stories.length,
       itemBuilder: (context, index) {
-        final story = widget.stories[index];
+        final story = stories[index];
         return GestureDetector(
           onTap: () => toDetailStory(story.story_id),
           child: Card(
