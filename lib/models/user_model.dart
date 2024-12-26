@@ -40,6 +40,8 @@ class UserModel {
       'id': id,
       'name': name,
       'email': email,
+      'date_of_birth': date_of_birth,
+      'avatar_url': avatar_url,
       'created_at': created_at.toIso8601String(),
       'fcm_token': fcmToken,
       'google_id': googleId,

@@ -5,9 +5,13 @@ import 'package:story/core/utils/navigation_utils.dart';
 import 'package:story/presentation/screens/download/download_screen.dart';
 
 import '../../../../core/services/auth_provider_check.dart';
+import '../../../../models/chapter.dart';
+import '../../../../models/story.dart';
 import '../../login/login_screen.dart';
 
 class AvatarDetailStory extends StatefulWidget {
+  final List<Chapter> chapters;
+  final Story story;
   final String image_path;
   final String title;
   final String author;
@@ -18,7 +22,9 @@ class AvatarDetailStory extends StatefulWidget {
       required this.image_path,
       required this.title,
       required this.author,
-      required this.story_id});
+      required this.story_id,
+      required this.chapters,
+      required this.story});
 
   @override
   State<AvatarDetailStory> createState() => _AvatarDetailStoryState();
@@ -186,7 +192,11 @@ class _AvatarDetailStoryState extends State<AvatarDetailStory> {
                       SizedBox(width: 12),
                       GestureDetector(
                         onTap: () => NavigationUtils.navigateTo(
-                            context, DownloadScreen()),
+                            context,
+                            DownloadScreen(
+                              chapters: widget.chapters,
+                              story: widget.story,
+                            )),
                         child: Icon(
                           Icons.download,
                           color: Colors.white,

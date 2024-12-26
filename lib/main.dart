@@ -20,6 +20,7 @@ final navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -27,7 +28,6 @@ void main() async {
   // Gọi Firebase API an toàn
   final firebaseApi = FirebaseApi();
   await firebaseApi.initNotifications();
-
   if (Platform.isAndroid) {
     // Chỉ chạy logic Firebase Messaging trên Android/iOS.
     await FirebaseMessaging.instance.setAutoInitEnabled(true);

@@ -6,8 +6,18 @@ import 'package:story/presentation/screens/profile/widget/user_widget.dart';
 import '../../../core/services/auth_provider_check.dart';
 import 'widget/login_widget.dart';
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +44,11 @@ class ProfilePage extends StatelessWidget {
                             borderRadius: BorderRadius.circular(35),
                           ),
                           child: authProvider.isLoggedIn
-                              ? UserWidget()
+                              ? UserWidget(
+                                  avataUrl:
+                                      authProvider.currentUser?.avatar_url,
+                                  name: authProvider.currentUser?.name,
+                                )
                               : login_widget(context),
                         ),
                       ),

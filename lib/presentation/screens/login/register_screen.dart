@@ -41,7 +41,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
     try {
-      await AuthService().register(email, password, password_confirmation);
+      await AuthService()
+          .register(context, email, password, password_confirmation);
       Snack_Bar('register success');
       print('register success');
       Navigator.push(

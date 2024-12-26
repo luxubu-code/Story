@@ -5,6 +5,8 @@ import 'package:story/presentation/screens/edit_profile/edit_profile_screen.dart
 import '../../../../core/services/auth_service.dart';
 import '../../../../core/services/clear_cache.dart';
 import '../../../../core/utils/SettingsSection.dart';
+import '../../../../storage/secure_tokenstorage.dart';
+import '../../vip/vip_packages_screen.dart';
 import 'SettingsOptionItem.dart';
 
 Widget BuildSettingsSection(BuildContext context, bool isLoggedIn) {
@@ -43,6 +45,16 @@ Widget BuildSettingsSection(BuildContext context, bool isLoggedIn) {
           ),
           SizedBox(height: 8),
           SettingsOptionItem(
+            icon: Icons.production_quantity_limits,
+            title: 'VIP',
+            onTap: () {
+              NavigationUtils.navigateTo(context, VipPackagesScreen());
+            },
+            showArrow: true,
+            isLoggedIn: isLoggedIn,
+          ),
+          SizedBox(height: 8),
+          SettingsOptionItem(
             icon: Icons.delete,
             title: 'Xóa bộ nhớ tạm',
             onTap: () {
@@ -55,7 +67,10 @@ Widget BuildSettingsSection(BuildContext context, bool isLoggedIn) {
           SettingsOptionItem(
             icon: Icons.language,
             title: 'Ngôn ngữ',
-            onTap: () {},
+            onTap: () async {
+              String? token = await SecureTokenStorage.getToken();
+              print("User Info: $token");
+            },
             showArrow: true,
             isLoggedIn: isLoggedIn,
           ),

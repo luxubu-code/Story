@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:story/core/services/image_service.dart';
 
+import '../../../core/services/history_service.dart';
 import '../../../models/chapter.dart';
 import '../../../models/image.dart';
 import '../detail_story/widget/comment_page.dart';
+import 'chapter_bottom_sheet.dart';
 
 class ChapterScreen extends StatefulWidget {
   final List<Chapter> chapters;
@@ -26,6 +28,8 @@ class _ChapterScreenState extends State<ChapterScreen> {
   late Future<List<ImagePath>> images;
   final ImageService imageService = ImageService();
   late ScrollController _scrollController;
+  final HistoryService historyService = HistoryService();
+
   bool _isBottomVisible = true; // Đảm bảo tên biến này đúng
 
   @override
@@ -167,7 +171,20 @@ class _ChapterScreenState extends State<ChapterScreen> {
                       icon: Icons.list_alt_sharp,
                       label: 'List Chapter',
                       onPressed: () {
-                        // Xử lý khi bấm nút Bookmark
+                        historyService.postHistory(
+                            widget.story_id, widget.chapter_id);
+
+                        showModalBottomSheet(
+                          context: context,
+                          backgroundColor: Colors.transparent,
+                          builder: (context) {
+                            return ChapterBottomSheet(
+                              chapters: widget.chapters,
+                              storyId: widget.story_id,
+                              currentChapter: widget.chapter_id,
+                            );
+                          },
+                        );
                       },
                     ),
                     _buildBottomBarItem(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:story/core/services/download_service.dart';
 import 'package:story/core/services/favourite_service.dart';
 import 'package:story/core/services/history_service.dart';
 
@@ -19,13 +20,14 @@ class _FavouritePageState extends State<FavouritePage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final FavouriteService _favouriteService = FavouriteService();
+  final DownloadService _downloadService = DownloadService();
   final HistoryService _historyService = HistoryService();
   late Future<List<Story>> _futureStories;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     _futureStories = _loadStories();
     _tabController.addListener(_onTabChanged);
   }
@@ -51,8 +53,10 @@ class _FavouritePageState extends State<FavouritePage>
     }
     if (_tabController.index == 0) {
       return await _historyService.fetchHistory();
-    } else {
+    } else if (_tabController.index == 1) {
       return await _favouriteService.fetchStoriesFavourite();
+    } else {
+      return await _downloadService.fetchDownloadedStories();
     }
   }
 
@@ -71,6 +75,7 @@ class _FavouritePageState extends State<FavouritePage>
             tabs: const [
               Tab(text: 'Lịch Sử Đọc'),
               Tab(text: 'Yêu Thích'),
+              Tab(text: 'Tải truyện'),
             ],
           ),
           Expanded(
@@ -83,6 +88,10 @@ class _FavouritePageState extends State<FavouritePage>
                           stories: stories,
                           context: context,
                         )),
+                LoginContentBuilder(
+                    futureStories: _futureStories,
+                    storyBuilder: (stories) =>
+                        ListStoryBuilder(stories: stories, context: context)),
                 LoginContentBuilder(
                     futureStories: _futureStories,
                     storyBuilder: (stories) =>

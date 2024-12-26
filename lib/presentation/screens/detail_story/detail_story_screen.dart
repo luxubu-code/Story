@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:story/core/constants/AppColors.dart';
+import 'package:story/core/services/download_service.dart';
 import 'package:story/presentation/screens/detail_story/widget/body_chapter.dart';
 import 'package:story/presentation/screens/detail_story/widget/body_rating.dart';
 
@@ -25,6 +26,7 @@ class _DetailStoryScreenState extends State<DetailStoryScreen>
     with SingleTickerProviderStateMixin {
   late bool isExists;
   late Future<Story> futureStory;
+  final DownloadService _downloadService = DownloadService();
   final StoryService storyService = StoryService();
   late TabController _tabController;
   static const List<Tab> myTabs = <Tab>[
@@ -75,6 +77,8 @@ class _DetailStoryScreenState extends State<DetailStoryScreen>
                     title: story.title,
                     author: story.author,
                     story_id: story.story_id,
+                    chapters: story.chapters,
+                    story: story,
                   ),
                   Container(
                     decoration: BoxDecoration(
@@ -114,7 +118,7 @@ class _DetailStoryScreenState extends State<DetailStoryScreen>
                           decoration: BoxDecoration(color: Colors.grey[800]),
                           child: SingleChildScrollView(
                             child: BodyDetail(
-                              story_id: story.story_id,
+                              storyId: story.story_id,
                               status: story.status,
                               categories: story.categories,
                               description: story.description,

@@ -1,31 +1,72 @@
 import 'package:flutter/material.dart';
 
-import '../../storage/secure_tokenstorage.dart';
+import '../../models/user_model.dart';
+import '../../storage/secure_tokenstorage.dart'; // Add this import
 
 class AuthProviderCheck with ChangeNotifier {
+  UserModel? _currentUser;
   bool _isLoggedIn = false;
-  bool get isLoggedIn => _isLoggedIn;
 
   AuthProviderCheck() {
-    _checkLoggin(); // Kiểm tra trạng thái khi khởi tạo provider
+    _initializeUserState();
   }
 
-  Future<void> _checkLoggin() async {
-    String? token = await SecureTokenStorage.getToken();
-    _isLoggedIn = token != null;
-    notifyListeners(); // Cập nhật giao diện sau khi kiểm tra token
+  // Initialize user state from secure storage
+  Future<void> _initializeUserState() async {
+    final storedUser = await SecureTokenStorage.getUser();
+    final token = await SecureTokenStorage.getToken();
+
+    if (storedUser != null && token != null) {
+      updateUserState(user: storedUser);
+    }
   }
 
-  Future<void> login(String token) async {
-    // Lưu token sau khi đăng nhập
-    await SecureTokenStorage.saveToken(token);
+  UserModel? get currentUser => _currentUser;
+
+  bool get isLoggedIn => _isLoggedIn;
+
+  // Comprehensive user state update method
+  void updateUserState({UserModel? user}) {
+    _currentUser = user;
+    _isLoggedIn = user != null;
+
+    // Sync with secure storage
+    if (user != null) {
+      SecureTokenStorage.saveUser(user);
+    }
+
+    notifyListeners();
+    print("User state updated: ${_currentUser?.name}, "
+        "avatar ${_currentUser?.avatar_url}, "
+        "Logged in: $_isLoggedIn");
+  }
+
+  // Enhanced login method
+  void login(String token) async {
     _isLoggedIn = true;
-    notifyListeners(); // Cập nhật giao diện sau khi lưu token
+
+    // Attempt to fetch and update user data
+    try {
+      final user = await SecureTokenStorage.getUser();
+      if (user != null) {
+        _currentUser = user;
+      }
+      print(await SecureTokenStorage.getToken());
+    } catch (e) {
+      print('Error fetching user during login: $e');
+    }
+
+    notifyListeners();
   }
 
-  Future<void> logout() async {
-    await SecureTokenStorage.deleteToken();
+  void logout() {
     _isLoggedIn = false;
-    notifyListeners(); // Cập nhật giao diện sau khi xóa token
+    _currentUser = null;
+
+    SecureTokenStorage.deleteToken();
+    SecureTokenStorage.deleteUser();
+    print('Deleted toke and user');
+
+    notifyListeners();
   }
 }

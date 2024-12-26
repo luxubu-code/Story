@@ -36,7 +36,7 @@ class _NewStoryListPageState extends State<NewStoryListPage> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         title: const Text(
-          'Host Comics',
+          'Truyện Hot',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -89,7 +89,7 @@ class _NewStoryListPageState extends State<NewStoryListPage> {
                   ),
                 ),
                 ShowMore(
-                  title: 'Popular Comics',
+                  title: 'Lượt đọc',
                   onShowMore: () {},
                   border: true,
                 ),

@@ -7,41 +7,69 @@ import '../models/user_model.dart';
 
 class SecureTokenStorage {
   static const _storage = FlutterSecureStorage();
+
+  // Token Management
   static Future<void> saveToken(String token) async {
-    await _storage.write(key: 'auth_token', value: token);
+    try {
+      await _storage.write(key: 'auth_token', value: token);
+      print('Token saved successfully');
+    } catch (e) {
+      print('Error saving token: $e');
+    }
   }
 
   static Future<String?> getToken() async {
-    return await _storage.read(key: 'auth_token');
+    try {
+      return await _storage.read(key: 'auth_token');
+    } catch (e) {
+      print('Error retrieving token: $e');
+      return null;
+    }
   }
 
   static Future<void> deleteToken() async {
-    print('đã xóa token');
-    await _storage.delete(key: 'auth_token');
+    try {
+      await _storage.delete(key: 'auth_token');
+      print('Token deleted successfully');
+    } catch (e) {
+      print('Error deleting token: $e');
+    }
   }
 
+  // User Data Management
   static Future<void> saveUser(UserModel user) async {
-    final prefs = await SharedPreferences.getInstance();
-    print('đã lưu userdata');
-    String Userjson = jsonEncode(user.toJson());
-    print(Userjson);
-    await prefs.setString('user_data', Userjson);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      String userJson = jsonEncode(user.toJson());
+      await prefs.setString('user_data', userJson);
+      print('User data saved successfully');
+    } catch (e) {
+      print('Error saving user data: $e');
+    }
   }
 
   static Future<UserModel?> getUser() async {
-    final prefs = await SharedPreferences.getInstance();
-    print('đã lấy userdata');
-    String? userJson = prefs.getString('user_data');
-    if (userJson == null) {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      String? userJson = prefs.getString('user_data');
+
+      if (userJson == null) return null;
+
+      Map<String, dynamic> userMap = jsonDecode(userJson);
+      return UserModel.fromJson(userMap);
+    } catch (e) {
+      print('Error retrieving user data: $e');
       return null;
     }
-    Map<String, dynamic> user = jsonDecode(userJson);
-    return UserModel.fromJson(user);
   }
 
   static Future<void> deleteUser() async {
-    final prefs = await SharedPreferences.getInstance();
-    print('đã xóa userdata');
-    await prefs.remove('user_data');
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('user_data');
+      print('User data deleted successfully');
+    } catch (e) {
+      print('Error deleting user data: $e');
+    }
   }
 }

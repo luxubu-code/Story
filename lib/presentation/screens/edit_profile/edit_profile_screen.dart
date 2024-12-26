@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:story/core/services/auth_service.dart';
-
-import '../../../storage/secure_tokenstorage.dart';
+import 'package:story/presentation/screens/edit_profile/widget/avatar_user.dart';
+import 'package:story/presentation/screens/edit_profile/widget/body_edit_profile.dart';
+import 'package:story/storage/secure_tokenstorage.dart';
 
 class EditProfileScreen extends StatefulWidget {
   @override
@@ -15,11 +16,15 @@ class EditProfileScreen extends StatefulWidget {
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _dobController = TextEditingController();
-
   final AuthService authService = AuthService();
-  File? _imageFile;
 
+  // State variables
+  String? _avatarUrl;
+  File? _imageFile;
   bool _isLoading = false;
+  bool _isEditing = false;
+  String _email = '';
+  DateTime? _creationDate;
 
   @override
   void initState() {
@@ -28,96 +33,117 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _loadUserData() async {
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     try {
       final token = await SecureTokenStorage.getToken();
       if (token == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Vui lòng đăng nhập lại')),
-        );
+        _showMessage('Vui lòng đăng nhập lại');
         return;
       }
 
-      final user =
-          await authService.fetchUser(); // Gọi API lấy thông tin người dùng.
+      final user = await authService.fetchUser(context);
 
-      // Cập nhật dữ liệu vào TextEditingController
       setState(() {
         _nameController.text = user.name;
-        _dobController.text = user.date_of_birth as String;
+        _dobController.text = _formatDate(user.date_of_birth);
+        _avatarUrl = user.avatar_url;
+        _email = user.email;
+        _creationDate = user.created_at;
       });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Không thể tải thông tin: $e')),
-      );
+      _showMessage('Không thể tải thông tin: $e');
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
     }
+  }
+
+  String _formatDate(dynamic date) {
+    if (date == null) return '';
+    if (date is DateTime) {
+      return DateFormat('dd/MM/yyyy').format(date);
+    }
+    return date.toString();
   }
 
   Future<void> _pickImage() async {
     try {
-      final pickedFile =
-          await ImagePicker().pickImage(source: ImageSource.gallery);
+      final pickedFile = await ImagePicker().pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 80,
+      );
+
       if (pickedFile != null) {
-        setState(() {
-          _imageFile = File(pickedFile.path);
-        });
+        setState(() => _imageFile = File(pickedFile.path));
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi khi chọn ảnh: $e')),
-      );
+      _showMessage('Lỗi khi chọn ảnh: $e');
     }
   }
 
-  Future<void> _updateUserAccount() async {
-    final String? token = await SecureTokenStorage.getToken();
-    final String name = _nameController.text;
-    final String dateOfBirth = _dobController.text;
-    final String? imagePath = _imageFile?.path;
-
-    if (token == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Vui lòng đăng nhập lại')),
-      );
-      return;
-    }
-
-    if (name.isEmpty || dateOfBirth.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Vui lòng điền đầy đủ thông tin!')),
-      );
-      return;
-    }
-
-    await authService.updateUserAccount(
-      token: token,
-      name: name,
-      dateOfBirth: dateOfBirth,
-      imagePath: imagePath,
-      context: context,
-    );
-  }
-
-  Future<void> _pickDate() async {
-    DateTime? selectedDate = await showDatePicker(
+  Future<void> _selectDate() async {
+    final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
     );
 
-    if (selectedDate != null) {
+    if (picked != null) {
       setState(() {
-        _dobController.text = DateFormat('yyyy-MM-dd').format(selectedDate);
+        _dobController.text = DateFormat('dd/MM/yyyy').format(picked);
       });
     }
+  }
+
+  Future<void> _updateUserAccount() async {
+    if (!_validateInputs()) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final token = await SecureTokenStorage.getToken();
+      if (token == null) {
+        _showMessage('Vui lòng đăng nhập lại');
+        return;
+      }
+
+      await authService.updateUserAccount(
+        token: token,
+        name: _nameController.text,
+        dateOfBirth: _dobController.text,
+        imagePath: _imageFile?.path,
+        context: context,
+      );
+
+      _showMessage('Cập nhật thông tin thành công');
+      setState(() => _isEditing = false);
+    } catch (e) {
+      _showMessage('Lỗi khi cập nhật: $e');
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  bool _validateInputs() {
+    if (_nameController.text.isEmpty || _dobController.text.isEmpty) {
+      _showMessage('Vui lòng điền đầy đủ thông tin!');
+      return false;
+    }
+    return true;
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _dobController.dispose();
+    super.dispose();
   }
 
   @override
@@ -132,6 +158,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
+        actions: [
+          // Toggle edit mode
+          IconButton(
+            icon: Icon(_isEditing ? Icons.close : Icons.edit),
+            onPressed: () => setState(() => _isEditing = !_isEditing),
+          ),
+        ],
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
@@ -143,102 +176,51 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Center(
-                      child: GestureDetector(
-                        onTap: _pickImage,
-                        child: Stack(
-                          alignment: Alignment.bottomRight,
-                          children: [
-                            CircleAvatar(
-                              radius: 50,
-                              backgroundImage: _imageFile != null
-                                  ? FileImage(_imageFile!) as ImageProvider
-                                  : AssetImage('assets/avatar.png'),
-                            ),
-                            Container(
-                              decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(0.5),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(6.0),
-                                child: Icon(Icons.camera_alt,
-                                    color: Colors.white, size: 18),
-                              ),
-                            ),
-                          ],
-                        ),
+                      child: AvatarUser(
+                        pickImage: _pickImage,
+                        imageFile: _imageFile,
+                        avataUrl: _avatarUrl,
+                        isEditing: _isEditing,
                       ),
                     ),
                     SizedBox(height: 30),
-                    _buildLabel("Họ và Tên"),
-                    _buildTextField(_nameController, "Nhập tên của bạn"),
-                    _buildLabel("Ngày Sinh"),
-                    GestureDetector(
-                      onTap: _pickDate,
-                      child: AbsorbPointer(
-                        child:
-                            _buildTextField(_dobController, "Chọn ngày sinh"),
-                      ),
+                    BodyEditProfile(
+                      nameController: _nameController,
+                      dobController: _dobController,
+                      isEditing: _isEditing,
+                      email: _email,
+                      creationDate: _creationDate ?? DateTime.now(),
+                      pickDate: _selectDate,
                     ),
                     SizedBox(height: 30),
-                    Center(
-                      child: SizedBox(
-                        width: double.infinity,
-                        height: 50,
-                        child: ElevatedButton(
-                          onPressed: _updateUserAccount,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.black,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                    if (_isEditing)
+                      Center(
+                        child: SizedBox(
+                          width: double.infinity,
+                          height: 50,
+                          child: ElevatedButton(
+                            onPressed: _updateUserAccount,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.black,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
-                          ),
-                          child: Text(
-                            "Cập Nhật Thông Tin",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16,
+                            child: Text(
+                              "Cập Nhật Thông Tin",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
                   ],
                 ),
               ),
             ),
-    );
-  }
-
-  Widget _buildLabel(String label) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6, top: 12),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 14,
-          color: Colors.grey[700],
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTextField(TextEditingController controller, String hint) {
-    return TextField(
-      controller: controller,
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: TextStyle(color: Colors.grey[400]),
-        contentPadding: EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: Colors.grey[300]!),
-        ),
-        filled: true,
-        fillColor: Colors.grey[100],
-      ),
     );
   }
 }
