@@ -42,7 +42,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         return;
       }
 
-      final user = await authService.fetchUser(context);
+      final user = await authService.fetchUser();
 
       setState(() {
         _nameController.text = user.name;

@@ -34,10 +34,6 @@ class _DownloadScreenState extends State<DownloadScreen> {
   }
 
   Future<void> _initializeDownloadStatus() async {
-    final isStoryDownloaded = await _downloadService.isStoryDownloaded(
-      widget.story.story_id,
-    );
-
     for (var chapter in widget.chapters) {
       final isDownloaded = await _downloadService.isChapterDownloaded(
         widget.story.story_id,
@@ -91,7 +87,6 @@ class _DownloadScreenState extends State<DownloadScreen> {
       await _downloadService.downloadChapters(
         story: widget.story,
         chapters: chaptersToDownload,
-        chapterImages: [], // TODO: Pass actual chapter images
         onProgress: (chapterId, progress) {
           setState(() {
             downloadProgress[chapterId] = progress;
@@ -120,233 +115,122 @@ class _DownloadScreenState extends State<DownloadScreen> {
     }
   }
 
-  Widget _buildStoryHeader() {
-    return Card(
-      margin: const EdgeInsets.all(8),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                widget.story.image_path,
-                width: 80,
-                height: 120,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    width: 80,
-                    height: 120,
-                    color: Colors.grey[300],
-                    child: const Icon(Icons.broken_image),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.story.title,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Tác giả: ${widget.story.author}',
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  LinearProgressIndicator(
-                    value: downloadProgress.isEmpty
-                        ? 0
-                        : downloadProgress.values
-                                .where((value) => value == 1.0)
-                                .length /
-                            totalChapters,
-                    backgroundColor: Colors.grey[200],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${downloadProgress.values.where((value) => value == 1.0).length}/$totalChapters chương đã tải',
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildChapterGrid() {
-    return GridView.builder(
-      padding: const EdgeInsets.all(8),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-        childAspectRatio: 1.5,
-      ),
-      itemCount: totalChapters,
-      itemBuilder: (context, index) {
-        final chapter = widget.chapters[index];
-        final progress = downloadProgress[chapter.chapter_id] ?? 0.0;
-        final isDownloaded = progress == 1.0;
-
-        return InkWell(
-          onTap: isDownloading ? null : () => toggleChapter(chapter.chapter_id),
-          child: Container(
-            decoration: BoxDecoration(
-              color: selectedChapters.contains(chapter.chapter_id)
-                  ? Theme.of(context).primaryColor.withOpacity(0.8)
-                  : Colors.grey[800],
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: isDownloaded ? Colors.green : Colors.transparent,
-                width: 2,
-              ),
-            ),
-            child: Stack(
-              children: [
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "Chương ${index + 1}",
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                      ),
-                    ),
-                    Text(
-                      chapter.title,
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 10,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-                if (isDownloaded)
-                  const Positioned(
-                    right: 4,
-                    top: 4,
-                    child: Icon(
-                      Icons.check_circle,
-                      color: Colors.green,
-                      size: 16,
-                    ),
-                  ),
-                if (progress > 0 && !isDownloaded)
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    child: LinearProgressIndicator(
-                      value: progress,
-                      backgroundColor: Colors.transparent,
-                      minHeight: 3,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Tải truyện về máy"),
+        title: const Text("Chọn chương tải về"),
         centerTitle: true,
       ),
       body: Column(
         children: [
-          _buildStoryHeader(),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
+            padding: const EdgeInsets.all(8.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "Đã chọn: ${selectedChapters.length}/$totalChapters chương",
-                  style: const TextStyle(fontSize: 14),
+                  "Tổng $totalChapters chương",
+                  style: const TextStyle(fontSize: 16),
                 ),
-                TextButton.icon(
-                  onPressed: isDownloading
-                      ? null
-                      : () => toggleSelectAll(
-                            selectedChapters.length != totalChapters,
-                          ),
-                  icon: Icon(
-                    selectedChapters.length == totalChapters
-                        ? Icons.deselect
-                        : Icons.select_all,
-                  ),
-                  label: Text(
-                    selectedChapters.length == totalChapters
-                        ? "Bỏ chọn tất cả"
-                        : "Chọn tất cả",
-                  ),
+                Text(
+                  "Đã chọn: ${selectedChapters.length}",
+                  style: const TextStyle(fontSize: 16),
                 ),
               ],
             ),
           ),
           Expanded(
-            child: _buildChapterGrid(),
-          ),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor.withOpacity(0.1),
-              border: Border(
-                top: BorderSide(
-                  color: Theme.of(context).dividerColor,
-                ),
+            child: GridView.builder(
+              padding: const EdgeInsets.all(8),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+                childAspectRatio: 2,
               ),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: isDownloading ? null : startDownload,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.all(16),
+              itemCount: totalChapters,
+              itemBuilder: (context, index) {
+                final chapter = widget.chapters[index];
+                final progress = downloadProgress[chapter.chapter_id] ?? 0.0;
+                final isDownloaded = progress == 1.0;
+
+                return GestureDetector(
+                  onTap: isDownloading
+                      ? null
+                      : () => toggleChapter(chapter.chapter_id),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: selectedChapters.contains(chapter.chapter_id)
+                          ? Colors.blue
+                          : Colors.grey[800],
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    icon: isDownloading
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
+                    child: Stack(
+                      children: [
+                        Center(
+                          child: Text(
+                            "${chapter.chapter_id}",
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ),
+                        if (isDownloaded)
+                          const Positioned(
+                            right: 4,
+                            top: 4,
+                            child: Icon(
+                              Icons.check_circle,
+                              color: Colors.green,
+                              size: 16,
                             ),
-                          )
-                        : const Icon(Icons.download),
-                    label: Text(
-                      isDownloading
-                          ? "Đang tải ${downloadProgress.values.where((v) => v == 1.0).length}/${selectedChapters.length} chương..."
-                          : "Tải ${selectedChapters.length} chương đã chọn",
+                          ),
+                        if (progress > 0 && !isDownloaded)
+                          Positioned(
+                            bottom: 0,
+                            left: 0,
+                            right: 0,
+                            child: LinearProgressIndicator(
+                              value: progress,
+                              backgroundColor: Colors.transparent,
+                            ),
+                          ),
+                      ],
                     ),
                   ),
+                );
+              },
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.all(8.0),
+            color: Colors.black54,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Checkbox(
+                      value: selectedChapters.length == totalChapters,
+                      onChanged: isDownloading ? null : toggleSelectAll,
+                    ),
+                    const Text(
+                      "Chọn tất cả",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ],
+                ),
+                ElevatedButton.icon(
+                  onPressed: isDownloading ? null : startDownload,
+                  icon: isDownloading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Icon(Icons.download),
+                  label: Text(isDownloading ? "Đang tải..." : "Tải xuống"),
                 ),
               ],
             ),

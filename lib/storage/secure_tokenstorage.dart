@@ -8,35 +8,20 @@ import '../models/user_model.dart';
 class SecureTokenStorage {
   static const _storage = FlutterSecureStorage();
 
-  // Token Management
   static Future<void> saveToken(String token) async {
-    try {
-      await _storage.write(key: 'auth_token', value: token);
-      print('Token saved successfully');
-    } catch (e) {
-      print('Error saving token: $e');
-    }
+    await _storage.write(key: 'auth_token', value: token);
   }
 
   static Future<String?> getToken() async {
-    try {
-      return await _storage.read(key: 'auth_token');
-    } catch (e) {
-      print('Error retrieving token: $e');
-      return null;
-    }
+    return await _storage.read(key: 'auth_token');
   }
 
   static Future<void> deleteToken() async {
-    try {
-      await _storage.delete(key: 'auth_token');
-      print('Token deleted successfully');
-    } catch (e) {
-      print('Error deleting token: $e');
-    }
+    print('đã xóa token');
+    await _storage.delete(key: 'auth_token');
   }
 
-  // User Data Management
+  /// Saves user data using SharedPreferences
   static Future<void> saveUser(UserModel user) async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -48,6 +33,7 @@ class SecureTokenStorage {
     }
   }
 
+  /// Retrieves stored user data
   static Future<UserModel?> getUser() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -63,6 +49,7 @@ class SecureTokenStorage {
     }
   }
 
+  /// Deletes stored user data
   static Future<void> deleteUser() async {
     try {
       final prefs = await SharedPreferences.getInstance();

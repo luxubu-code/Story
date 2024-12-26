@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:story/core/constants/AppColors.dart';
 import 'package:story/core/services/comment_service.dart';
 
-import '../../../../core/services/auth_provider_check.dart';
 import '../../../../core/utils/future_widget.dart';
 import '../../../../models/category.dart';
 import '../../../../models/comment.dart';
@@ -14,7 +12,7 @@ import 'expandable_text.dart';
 import 'story_category.dart';
 
 class BodyDetail extends StatefulWidget {
-  final int storyId;
+  final int story_id;
   final int status;
   final List<Category> categories;
   final String description;
@@ -24,7 +22,7 @@ class BodyDetail extends StatefulWidget {
     required this.categories,
     required this.description,
     required this.status,
-    required this.storyId,
+    required this.story_id,
   });
 
   @override
@@ -34,7 +32,7 @@ class BodyDetail extends StatefulWidget {
 class _BodyDetailState extends State<BodyDetail> {
   late Future<List<Comment>> _futureComment;
   final CommentService _commentService = CommentService();
-  late CommentPage commentPage = CommentPage(story_id: widget.storyId);
+  late CommentPage commentPage = CommentPage(story_id: widget.story_id);
 
   @override
   void initState() {
@@ -42,16 +40,8 @@ class _BodyDetailState extends State<BodyDetail> {
     _loadComment();
   }
 
-  void _refreshComments() {
-    setState(() {
-      _futureComment =
-          _commentService.fetchMostLikesComment(1, widget.storyId, context);
-    });
-  }
-
   void _loadComment() {
-    _futureComment =
-        _commentService.fetchMostLikesComment(1, widget.storyId, context);
+    _futureComment = _commentService.fetchMostLikesComment(1, widget.story_id);
   }
 
   void showComments() {
@@ -60,15 +50,13 @@ class _BodyDetailState extends State<BodyDetail> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (BuildContext context) {
-        return CommentPage(story_id: widget.storyId);
+        return CommentPage(story_id: widget.story_id);
       },
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProviderCheck>(context, listen: false);
-
     return SingleChildScrollView(
       child: Stack(
         children: [
@@ -108,12 +96,8 @@ class _BodyDetailState extends State<BodyDetail> {
               ),
               buildFuture(
                 futureList: _futureComment,
-                itemBuilder: (context, comment) => CommentWidget(
-                  comment: comment,
-                  isMyComment:
-                      authProvider.currentUser?.id == comment.user[0].id,
-                  onCommentDeleted: _refreshComments,
-                ),
+                itemBuilder: (context, comment) =>
+                    CommentWidget(comment: comment),
               ),
             ],
           ),

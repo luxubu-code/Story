@@ -4,6 +4,7 @@ import 'package:story/presentation/screens/profile/widget/BuildSettingsSection.d
 import 'package:story/presentation/screens/profile/widget/user_widget.dart';
 
 import '../../../core/services/auth_provider_check.dart';
+import '../../../core/services/auth_service.dart';
 import 'widget/login_widget.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -14,9 +15,24 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  final AuthService authService = AuthService();
+  String? _name;
+  String? _avatarUrl;
+
+  Future<void> _loadUserData() async {
+    try {
+      final user = await authService.fetchUser();
+      setState(() {
+        _avatarUrl = user.avatar_url;
+        _name = user.name;
+      });
+    } catch (e) {}
+  }
+
   @override
   void initState() {
     super.initState();
+    _loadUserData();
   }
 
   @override
@@ -45,9 +61,8 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                           child: authProvider.isLoggedIn
                               ? UserWidget(
-                                  avataUrl:
-                                      authProvider.currentUser?.avatar_url,
-                                  name: authProvider.currentUser?.name,
+                                  avataUrl: _avatarUrl,
+                                  name: _name,
                                 )
                               : login_widget(context),
                         ),

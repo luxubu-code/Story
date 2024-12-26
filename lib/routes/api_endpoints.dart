@@ -3,8 +3,6 @@ class ApiEndpoints {
 
   static const String baseUrl = 'http://192.168.2.171:8000';
 
-  // static const String baseUrl = 'http://192.168.120.95:8000';
-
   // static const String baseUrl = 'http://0.0.0.0:8000';
 
   // static const String baseUrl = 'http://192.168.227.95:8000';
@@ -13,12 +11,6 @@ class ApiEndpoints {
 
   static const String updateProfile = '$baseUrl/api/user';
   static const String getUser = '$baseUrl/api/user';
-
-  static const String vip = '$baseUrl/api/vip';
-  static const String current = '$baseUrl/api/subscriptions/current';
-  static const String vip_history = '$baseUrl/api/subscriptions/history';
-  static const String purchase = '$baseUrl/api/subscriptions/purchase';
-  static const String vnpayReturn = '$baseUrl/api/subscriptions/purchase';
 
   //Search
   static const String getStoriesSearch = '$baseUrl/api/stories/search';
