@@ -1,18 +1,17 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
+import 'package:story/core/services/user_provider.dart';
 
 import '../../main.dart';
 import '../../models/user_model.dart';
 import '../../routes/api_endpoints.dart';
 import '../../storage/secure_tokenstorage.dart';
 import '../utils/Snackbar.dart';
+import 'api_service.dart';
 import 'auth_provider_check.dart';
 
 class AuthService {
@@ -20,21 +19,7 @@ class AuthService {
   final FirebaseAuth auth = FirebaseAuth.instance;
 
   Future<Map<String, dynamic>?> signInWithGoogle(BuildContext context) async {
-    // Kiểm tra xem đã có người dùng đăng nhập sẵn chưa
     try {
-      final GoogleSignInAccount? currentUser =
-          await googleSignIn.signInSilently();
-      final token = await SecureTokenStorage.getToken();
-
-      if (currentUser != null) {
-        print("Người dùng đã đăng nhập sẵn: ${currentUser.email}");
-        return await _handleSignIn(currentUser, context);
-      }
-      if (token == null) {
-        await googleSignIn.signOut();
-        print("không có token");
-      }
-
       final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
       if (googleUser == null) {
         print("Người dùng đã hủy đăng nhập");
@@ -42,151 +27,127 @@ class AuthService {
       }
       return await _handleSignIn(googleUser, context);
     } catch (e) {
-      print(
-          '====================================================================================================================');
       print('Lỗi chi tiết: $e');
+      Snack_Bar('Lỗi khi đăng nhập với Google: $e');
+      return null;
     }
   }
 
   Future<Map<String, dynamic>> _handleSignIn(
       GoogleSignInAccount googleUser, BuildContext context) async {
-    final GoogleSignInAuthentication googleAuth =
-        await googleUser.authentication;
-    final response = await http.post(
-      Uri.parse(ApiEndpoints.postGoogle),
-      body: {'idToken': googleAuth.idToken},
-    );
-    print(
-        '====================================================================================================================');
-    print(googleAuth.idToken);
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> data = json.decode(response.body);
-      await SecureTokenStorage.saveToken(data['access_token']);
-      final token = data['access_token'];
+    try {
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
 
-      if (token != null) {
-        final authProvider =
-            Provider.of<AuthProviderCheck>(context, listen: false);
-        await authProvider.login(token);
-        print('Login successful, token saved.');
-      } else {
-        print('Login failed: Token not found in response.');
+      // In ra token để debug
+      print('Google ID Token: ${googleAuth.idToken?.substring(0, 20)}...');
+
+      final data = await ApiService.request(
+        url: ApiEndpoints.postGoogle,
+        method: "POST",
+        body: {'idToken': googleAuth.idToken},
+        isJson: false,
+      );
+
+      // Kiểm tra dữ liệu chi tiết
+      if (data == null) {
+        throw Exception('Phản hồi API trả về null');
       }
-      UserModel user = UserModel.fromJson(data['user']);
+
+      print('Cấu trúc dữ liệu nhận được: ${data.keys.toList()}');
+
+      // Kiểm tra từng trường dữ liệu
+      if (!data.containsKey('access_token')) {
+        throw Exception('Thiếu trường access_token trong phản hồi');
+      }
+      if (!data.containsKey('data')) {
+        throw Exception('Thiếu thông tin user trong phản hồi');
+      }
+
+      // Xử lý dữ liệu khi mọi thứ hợp lệ
+      await SecureTokenStorage.saveToken(data['access_token']);
+
+      final authProvider =
+          Provider.of<AuthProviderCheck>(context, listen: false);
+      await authProvider.login(data['access_token']);
+
+      UserModel user = UserModel.fromJson(data['data']);
       await SecureTokenStorage.saveUser(user);
+
+      Snack_Bar('Đăng nhập thành công');
       return data;
-    } else {
-      print('Server responded with status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-      throw Exception('Failed to authenticate with server');
+    } catch (e) {
+      print('Chi tiết lỗi trong _handleSignIn: $e');
+      Snack_Bar('Đăng nhập Google thất bại');
+      throw Exception('Đăng nhập Google thất bại: $e');
     }
   }
 
   Future<void> login(
       String email, String password, BuildContext context) async {
-    final url = Uri.parse(ApiEndpoints.login);
-    final headers = {
-      "Accept": "application/json",
-      "Content-Type": "application/x-www-form-urlencoded"
-    };
-    final body = {'email': email, 'password': password};
-
     try {
-      final response = await http.post(url, headers: headers, body: body);
+      final data = await ApiService.request(
+        url: ApiEndpoints.login,
+        method: "POST",
+        body: {'email': email, 'password': password},
+        isJson: false,
+      );
 
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
-        await SecureTokenStorage.saveToken(data['access_token']);
-        UserModel user = UserModel.fromJson(data['user']);
-        await SecureTokenStorage.saveUser(user);
-        final token = data['access_token'];
+      await SecureTokenStorage.saveToken(data['access_token']);
+      UserModel user = UserModel.fromJson(data['user']);
+      await SecureTokenStorage.saveUser(user);
 
-        if (token != null) {
-          final authProvider =
-              Provider.of<AuthProviderCheck>(context, listen: false);
-          await authProvider.login(token);
-          print('Login successful, token saved.');
-        } else {
-          print('Login failed: Token not found in response.');
-        }
-      } else {
-        print('Failed to send request: ${response.statusCode}.');
-      }
-    } on SocketException {
-      throw Exception('No Internet connection');
-    } on TimeoutException {
-      throw Exception('Connection timeout');
+      final authProvider =
+          Provider.of<AuthProviderCheck>(context, listen: false);
+      await authProvider.login(data['access_token']);
+      Snack_Bar('Đăng nhập thành công');
     } catch (e) {
-      throw Exception('Unexpected error: $e');
+      print('Lỗi khi đăng nhập: $e');
+      Snack_Bar('Đăng nhập thất bại: $e');
     }
   }
 
   Future<void> register(
-      String email, String password, String password_confirmation) async {
-    final url = Uri.parse(ApiEndpoints.register);
-    print(url);
-    final headers = {
-      "Accept": "application/json",
-      "Content-Type": "application/x-www-form-urlencoded"
-    };
-    final body = {
-      'email': email,
-      'password': password,
-      'password_confirmation': password_confirmation
-    };
-    print(body);
-
+      String email, String password, String passwordConfirmation) async {
     try {
-      final response = await http.post(url, headers: headers, body: body);
-      print('${response.statusCode}');
+      final data = await ApiService.request(
+        url: ApiEndpoints.register,
+        method: "POST",
+        body: {
+          'email': email,
+          'password': password,
+          'password_confirmation': passwordConfirmation
+        },
+        isJson: false,
+      );
 
-      if (response.statusCode == 200) {
-        final responseData = json.decode(response.body);
-        final status = responseData['status'];
-        if (status == 'success') {
-          print('register success');
-          Snack_Bar('register success');
-        } else {
-          print('register failed');
-          Snack_Bar('register failed');
-        }
+      if (data['status'] == 'success') {
+        Snack_Bar('Đăng ký thành công');
       } else {
-        print('Failed to send request: ${response.statusCode}.');
-        Snack_Bar('Failed to send request: ${response.statusCode}.');
+        Snack_Bar('Đăng ký thất bại: ${data['message']}');
       }
-    } on SocketException {
-      throw Exception('No Internet connection');
-    } on TimeoutException {
-      throw Exception('Connection timeout');
     } catch (e) {
-      throw Exception('Unexpected error: $e');
+      print('Lỗi khi đăng ký: $e');
+      Snack_Bar('Đăng ký thất bại: $e');
     }
   }
 
   static Future<void> sendFcm(String fcmToken) async {
-    String? token = await SecureTokenStorage.getToken();
-
-    // Kiểm tra nếu token là null hoặc rỗng, thì không thực hiện gửi
-    if (token == null || token.isEmpty) {
-      print('No token available, skipping FCM send');
-      return; // Dừng hàm nếu không có token
-    }
-
-    final url = Uri.parse(ApiEndpoints.sendFcm);
-    final headers = {
-      'Authorization': 'Bearer $token',
-      'Content-Type': 'application/json',
-    };
-    final body = jsonEncode({'token': fcmToken});
     try {
-      final response = await http.post(url, headers: headers, body: body);
-      if (response.statusCode == 200) {
-        print('FCM Token sent successfully');
-        print(response.body);
-      } else {
-        print('Failed to send FCM Token. Status code: ${response.statusCode}');
-        print('Response body: ${response.body}');
+      final token = await SecureTokenStorage.getToken();
+      if (token == null || token.isEmpty) {
+        print('No token available, skipping FCM send');
+        return;
       }
+
+      await ApiService.request(
+        url: ApiEndpoints.sendFcm,
+        method: "POST",
+        headers: {'Authorization': 'Bearer $token'},
+        body: {'token': fcmToken},
+      );
+
+      print('FCM Token sent successfully');
     } catch (e) {
       print('Error sending FCM Token: $e');
     }
@@ -196,9 +157,9 @@ class AuthService {
     final authProvider = Provider.of<AuthProviderCheck>(context, listen: false);
     await SecureTokenStorage.deleteUser();
     await SecureTokenStorage.deleteToken();
-    await authProvider
-        .logout(); // Gọi phương thức logout từ AuthProvider để cập nhật trạng thái
-    Snack_Bar('Đã đăng xuất');
+    await authProvider.logout();
+
+    Snack_Bar('Đã đăng xuất');
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(
@@ -215,87 +176,56 @@ class AuthService {
     String? imagePath,
     required BuildContext context,
   }) async {
-    // URL endpoint của API
-    final url = Uri.parse(ApiEndpoints.updateProfile);
-
-    // Tạo request Multipart
-    final request = http.MultipartRequest('POST', url)
-      ..headers['Authorization'] = 'Bearer $token' // Gửi token xác thực
-      ..fields['name'] = name
-      ..fields['date_of_birth'] = dateOfBirth;
-    if (imagePath != null && imagePath.isNotEmpty) {
-      try {
-        request.files
-            .add(await http.MultipartFile.fromPath('image', imagePath));
-      } catch (e) {
-        Snack_Bar('Không thể tải lên hình ảnh: $e');
-        return;
-      }
-    }
-
     try {
-      final response = await request.send();
-      if (response.statusCode == 200) {
-        final responseBody = await response.stream.bytesToString();
-        final data = jsonDecode(responseBody);
-        Snack_Bar('Cập nhật thông tin thành công');
-        print('Cập nhật thành công: ${data['message']}');
-      } else {
-        final responseBody = await response.stream.bytesToString();
-        final errorData = jsonDecode(responseBody);
-        Snack_Bar('Cập nhật thất bại: ${errorData['message']}');
-        print('Chi tiết lỗi: ${errorData['errors']}');
+      // First, prepare the request body
+      final body = {
+        'name': name,
+        'date_of_birth': dateOfBirth,
+      };
+
+      // Make the API request to update the profile
+      final data = await ApiService.request(
+        url: ApiEndpoints.updateProfile,
+        method: "MULTIPART",
+        token: token,
+        body: body,
+        imagePath: imagePath,
+      );
+      // Kiểm tra và xử lý dữ liệu trả về
+      if (data == null || !data.containsKey('data')) {
+        throw Exception('Phản hồi không hợp lệ từ server');
       }
+      final updatedUserData = data['data'];
+      UserModel updatedUser = UserModel.fromJson(updatedUserData);
+
+      // Cập nhật dữ liệu trong UserProvider
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      print('Cập nhật dữ liệu trong UserProvider');
+      userProvider.setUser(updatedUser);
+      await SecureTokenStorage.saveUser(updatedUser);
     } catch (e) {
-      Snack_Bar('Lỗi trong quá trình cập nhật: $e');
+      Snack_Bar('Lỗi khi cập nhật thông tin: $e');
       print('Lỗi khi cập nhật tài khoản: $e');
     }
   }
 
   Future<UserModel> fetchUser() async {
-    String? token = await SecureTokenStorage.getToken();
-    final headers = {
-      'Authorization': 'Bearer $token',
-      'Content-Type': 'application/json',
-    };
     try {
-      final response = await http
-          .get(Uri.parse(ApiEndpoints.getUser), headers: headers)
-          .timeout(const Duration(seconds: 100)); // Giới hạn thời gian chờ
-
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> jsonResponse = json.decode(response.body);
-
-        if (jsonResponse['status'] == 'success' &&
-            jsonResponse['data'] != null) {
-          return UserModel.fromJson(jsonResponse['data']);
-        } else {
-          final errorMessage =
-              'API Error: ${jsonResponse['message'] ?? 'Unknown error'}';
-          print(errorMessage);
-          throw Exception(errorMessage);
-        }
-      } else {
-        final errorMessage =
-            'Failed to fetch user data: ${response.reasonPhrase}';
-        print(errorMessage);
-        throw HttpException(
-          errorMessage,
-          uri: Uri.parse(ApiEndpoints.getUser),
-        );
+      final token = await SecureTokenStorage.getToken();
+      if (token == null || token.isEmpty) {
+        throw Exception('No token available');
       }
-    } on SocketException catch (e) {
-      final errorMessage = 'No Internet connection: $e';
-      print(errorMessage);
-      throw Exception(errorMessage);
-    } on TimeoutException catch (e) {
-      final errorMessage = 'Connection timeout: $e';
-      print(errorMessage);
-      throw Exception(errorMessage);
+
+      final data = await ApiService.request(
+        url: ApiEndpoints.getUser,
+        method: "GET",
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      return UserModel.fromJson(data['data']);
     } catch (e) {
-      final errorMessage = 'Unexpected error: $e';
-      print(errorMessage);
-      throw Exception(errorMessage);
+      print('Lỗi khi lấy thông tin người dùng: $e');
+      throw Exception('Failed to fetch user: $e');
     }
   }
 }

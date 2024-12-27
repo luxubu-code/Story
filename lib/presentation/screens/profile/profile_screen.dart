@@ -4,7 +4,7 @@ import 'package:story/presentation/screens/profile/widget/BuildSettingsSection.d
 import 'package:story/presentation/screens/profile/widget/user_widget.dart';
 
 import '../../../core/services/auth_provider_check.dart';
-import '../../../core/services/auth_service.dart';
+import '../../../core/services/user_provider.dart';
 import 'widget/login_widget.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -15,64 +15,76 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  final AuthService authService = AuthService();
-  String? _name;
-  String? _avatarUrl;
-
-  Future<void> _loadUserData() async {
-    try {
-      final user = await authService.fetchUser();
-      setState(() {
-        _avatarUrl = user.avatar_url;
-        _name = user.name;
-      });
-    } catch (e) {}
-  }
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadUserData();
+    _refreshUserData();
+  }
+
+  Future<void> _refreshUserData() async {
+    try {
+      setState(() => _isLoading = true);
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      await userProvider.refreshUser();
+    } catch (e) {
+      debugPrint('Error refreshing user data: $e');
+    } finally {
+      setState(() => _isLoading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: Scaffold(
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F5F5),
+      appBar: AppBar(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          automaticallyImplyLeading: false,
-        ),
-        body: SafeArea(
-          child: SingleChildScrollView(
-            child: Center(
-              child: Consumer<AuthProviderCheck>(
-                builder: (context, authProvider, child) {
-                  return Column(
-                    children: [
-                      SizedBox(height: 8),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.purpleAccent),
-                            borderRadius: BorderRadius.circular(35),
-                          ),
-                          child: authProvider.isLoggedIn
-                              ? UserWidget(
-                                  avataUrl: _avatarUrl,
-                                  name: _name,
-                                )
-                              : login_widget(context),
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Center(
+            child: Consumer2<AuthProviderCheck, UserProvider>(
+              builder: (context, authProvider, userProvider, child) {
+                if (_isLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                final user = userProvider.user;
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 20),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.2),
+                              blurRadius: 10,
+                              offset: const Offset(0, 5),
+                            ),
+                          ],
                         ),
+                        child: authProvider.isLoggedIn
+                            ? UserWidget(
+                                avataUrl: user?.avatar_url,
+                                name: user?.name,
+                              )
+                            : login_widget(context),
                       ),
-                      SizedBox(height: 20),
-                      BuildSettingsSection(context, authProvider.isLoggedIn),
-                    ],
-                  );
-                },
-              ),
+                    ),
+                    const SizedBox(height: 32),
+                    BuildSettingsSection(context, authProvider.isLoggedIn),
+                  ],
+                );
+              },
             ),
           ),
         ),

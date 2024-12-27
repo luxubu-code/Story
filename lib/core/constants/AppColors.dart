@@ -1,7 +1,17 @@
-import 'dart:ui';
+import 'package:flutter/cupertino.dart';
 
 class AppColors {
   // Deep & Rich Purples
+
+  static const primaryGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      Color(0xFF9C27B0), // Deep Purple
+      Color(0xFFE91E63), // Pink
+    ],
+  );
+
   static const Color darkestPurple = Color(0xFF2A0845);
   static const Color deepPurple = Color(0xFF4A148C);
   static const Color imperialPurple = Color(0xFF4B0082);

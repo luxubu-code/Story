@@ -9,6 +9,7 @@ import 'package:story/core/constants/AppColors.dart';
 import 'package:story/presentation/screens/rank/rank_screen.dart';
 
 import 'core/services/auth_provider_check.dart';
+import 'core/services/user_provider.dart';
 import 'firebase_options.dart';
 import 'presentation/screens/favourite/favourite_screen.dart';
 import 'presentation/screens/home/main_screen.dart';
@@ -34,7 +35,10 @@ void main() async {
   }
   runApp(
     MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => AuthProviderCheck())],
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProviderCheck()),
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+      ],
       child: MyApp(),
     ),
   );
