@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 
-import '../../models/user_model.dart';
-import '../../storage/secure_tokenstorage.dart';
-import 'auth_service.dart';
+import '../../../models/user_model.dart';
+import '../../../storage/secure_tokenstorage.dart';
+import '../auth_service.dart';
 
 class UserProvider extends ChangeNotifier {
   UserModel? _user;

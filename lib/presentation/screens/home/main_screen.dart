@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../../../../models/story.dart';
 import '../../../core/services/story_service.dart';
 import '../../../core/utils/navigation_utils.dart';
+import '../../../main.dart';
 import '../../widgets/show_more.dart';
 import '../search/search.dart';
 import 'widget/story_card.dart';
@@ -88,11 +89,41 @@ class _NewStoryListPageState extends State<NewStoryListPage> {
                         autoPlayAnimationDuration: const Duration(seconds: 3)),
                   ),
                 ),
+                SizedBox(height: 5),
                 ShowMore(
-                  title: 'Lượt đọc',
-                  onShowMore: () {},
+                  title: 'Lượt Đọc',
+                  onShowMore: () {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (context) => MyHomePage(
+                          initialIndex: 1, // Navigate to rank screen
+                          rankTabIndex: 0, // Show "Lượt yêu thích" tab
+                        ),
+                      ),
+                    );
+                  },
                   border: true,
                 ),
+                SizedBox(height: 5),
+                Expanded(
+                    child: StoryList(
+                  stories: stories,
+                )),
+                ShowMore(
+                  title: 'Lượt Yêu Thích',
+                  onShowMore: () {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (context) => MyHomePage(
+                          initialIndex: 1, // Navigate to rank screen
+                          rankTabIndex: 1, // Show "Lượt yêu thích" tab
+                        ),
+                      ),
+                    );
+                  },
+                  border: true,
+                ),
+                SizedBox(height: 5),
                 Expanded(
                     child: StoryList(
                   stories: stories,

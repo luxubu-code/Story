@@ -6,9 +6,15 @@ import '../../../models/story.dart';
 import '../../widgets/default_list.dart';
 
 class RankScreen extends StatefulWidget {
-  final String title;
+  final int initialTabIndex;
 
-  const RankScreen({super.key, required this.title});
+  RankScreen({super.key, required this.initialTabIndex});
+
+  final GlobalKey<_RankScreenState> rankKey = GlobalKey<_RankScreenState>();
+
+  void switchToTab(int index) {
+    rankKey.currentState?.switchToTab(index);
+  }
 
   @override
   State<RankScreen> createState() => _RankScreenState();
@@ -33,10 +39,20 @@ class _RankScreenState extends State<RankScreen>
     }
   }
 
+  void switchToTab(int index) {
+    if (_tabController.index != index) {
+      _tabController.animateTo(index);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(
+      length: 2,
+      vsync: this,
+      initialIndex: widget.initialTabIndex,
+    );
     _tabController.addListener(() {
       setState(() {
         _futureStories = _loadStories();

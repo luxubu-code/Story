@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../core/services/auth_provider_check.dart';
+import '../../../../core/services/provider/auth_provider_check.dart';
 
 class UserWidget extends StatelessWidget {
   final String? avataUrl;

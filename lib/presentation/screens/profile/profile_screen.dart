@@ -3,8 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:story/presentation/screens/profile/widget/BuildSettingsSection.dart';
 import 'package:story/presentation/screens/profile/widget/user_widget.dart';
 
-import '../../../core/services/auth_provider_check.dart';
-import '../../../core/services/user_provider.dart';
+import '../../../core/services/provider/auth_provider_check.dart';
+import '../../../core/services/provider/user_provider.dart';
 import 'widget/login_widget.dart';
 
 class ProfilePage extends StatefulWidget {

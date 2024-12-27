@@ -8,8 +8,9 @@ import 'package:provider/provider.dart';
 import 'package:story/core/constants/AppColors.dart';
 import 'package:story/presentation/screens/rank/rank_screen.dart';
 
-import 'core/services/auth_provider_check.dart';
-import 'core/services/user_provider.dart';
+import 'core/services/provider/auth_provider_check.dart';
+import 'core/services/provider/rank_provider.dart';
+import 'core/services/provider/user_provider.dart';
 import 'firebase_options.dart';
 import 'presentation/screens/favourite/favourite_screen.dart';
 import 'presentation/screens/home/main_screen.dart';
@@ -38,6 +39,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProviderCheck()),
         ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => RankStateProvider()),
       ],
       child: MyApp(),
     ),
@@ -55,15 +57,21 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.purple,
         scaffoldBackgroundColor: Colors.white,
       ),
-      home: const MyHomePage(),
+      home: MyHomePage(key: MyHomePage.globalKey),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
   final int initialIndex;
+  final int rankTabIndex;
 
-  const MyHomePage({Key? key, this.initialIndex = 0}) : super(key: key);
+  const MyHomePage({
+    Key? key,
+    this.initialIndex = 0,
+    this.rankTabIndex = 0,
+  }) : super(key: key);
+  static final GlobalKey<_MyHomePageState> globalKey = GlobalKey();
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -91,7 +99,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
   List<Widget> get _pages => [
         NewStoryListPage(key: PageStorageKey('home')),
-        RankScreen(title: '', key: PageStorageKey('showMore')),
+        RankScreen(
+          key: PageStorageKey('showMore'),
+          initialTabIndex: widget.rankTabIndex, // Use the passed tab index
+        ),
         FavouritePage(key: PageStorageKey('favourite')),
         ProfilePage(key: PageStorageKey('profile')),
       ];

@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
-import 'package:story/core/services/user_provider.dart';
+import 'package:story/core/services/provider/user_provider.dart';
 
 import '../../main.dart';
 import '../../models/user_model.dart';
@@ -12,7 +12,7 @@ import '../../routes/api_endpoints.dart';
 import '../../storage/secure_tokenstorage.dart';
 import '../utils/Snackbar.dart';
 import 'api_service.dart';
-import 'auth_provider_check.dart';
+import 'provider/auth_provider_check.dart';
 
 class AuthService {
   final GoogleSignIn googleSignIn = GoogleSignIn();

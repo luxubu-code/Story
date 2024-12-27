@@ -4,7 +4,7 @@ import 'package:story/core/services/favourite_service.dart';
 import 'package:story/core/utils/navigation_utils.dart';
 import 'package:story/presentation/screens/download/download_screen.dart';
 
-import '../../../../core/services/auth_provider_check.dart';
+import '../../../../core/services/provider/auth_provider_check.dart';
 import '../../../../models/chapter.dart';
 import '../../../../models/story.dart';
 import '../../login/login_screen.dart';

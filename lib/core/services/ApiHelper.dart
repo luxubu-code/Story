@@ -5,7 +5,6 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 
 class ApiHelper {
-  /// Phương thức gọi API chung
   static Future<dynamic> fetchData({
     required String url,
     String method = 'GET',

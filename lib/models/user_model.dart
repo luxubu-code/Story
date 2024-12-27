@@ -5,22 +5,24 @@ class UserModel {
   final String avatar_url;
   final DateTime created_at;
   final String date_of_birth;
-  final String? fcmToken; // Made optional
-  final String? googleId; // Made optional
+  final String fcmToken;
+  final String googleId;
 
   UserModel({
-    this.id = 0, // Provided default value since it's not in response
+    required this.id,
     required this.name,
     required this.email,
     required this.avatar_url,
     required this.created_at,
     required this.date_of_birth,
-    this.fcmToken,
-    this.googleId,
+    required this.fcmToken,
+    required this.googleId,
   });
 
+  // Phương thức để chuyển từ JSON thành model UserModel
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
+      id: json['id'] ?? 0,
       name: json['name'] ?? '',
       email: json['email'] ?? '',
       avatar_url: json['avatar_url'] ?? '',
@@ -28,8 +30,8 @@ class UserModel {
           ? DateTime.parse(json['created_at'])
           : DateTime.now(),
       date_of_birth: json['date_of_birth'] ?? '',
-      fcmToken: json['fcm_token'],
-      googleId: json['google_id'],
+      fcmToken: json['fcm_token'] ?? '',
+      googleId: json['google_id'] ?? '',
     );
   }
 
@@ -38,6 +40,8 @@ class UserModel {
       'id': id,
       'name': name,
       'email': email,
+      'date_of_birth': date_of_birth,
+      'avatar_url': avatar_url,
       'created_at': created_at.toIso8601String(),
       'fcm_token': fcmToken,
       'google_id': googleId,

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../storage/secure_tokenstorage.dart';
+import '../../../storage/secure_tokenstorage.dart';
 
 class AuthProviderCheck with ChangeNotifier {
   bool _isLoggedIn = false;
+
   bool get isLoggedIn => _isLoggedIn;
 
   AuthProviderCheck() {

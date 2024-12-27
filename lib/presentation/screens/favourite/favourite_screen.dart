@@ -6,7 +6,7 @@ import '../../../core/constants/AppColors.dart';
 import '../../../models/story.dart';
 import '../../../storage/secure_tokenstorage.dart';
 import '../../widgets/list_story_builder.dart';
-import '../../widgets/login_content_builder.dart';
+import '../../widgets/login_content_stories_builder.dart';
 
 class FavouritePage extends StatefulWidget {
   const FavouritePage({super.key});
@@ -25,7 +25,7 @@ class _FavouritePageState extends State<FavouritePage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     _futureStories = _loadStories();
     _tabController.addListener(_onTabChanged);
   }
@@ -51,6 +51,8 @@ class _FavouritePageState extends State<FavouritePage>
     }
     if (_tabController.index == 0) {
       return await _historyService.fetchHistory();
+    } else if (_tabController.index == 1) {
+      return await _favouriteService.fetchStoriesFavourite();
     } else {
       return await _favouriteService.fetchStoriesFavourite();
     }
@@ -71,19 +73,24 @@ class _FavouritePageState extends State<FavouritePage>
             tabs: const [
               Tab(text: 'Lịch Sử Đọc'),
               Tab(text: 'Yêu Thích'),
+              Tab(text: 'Tải Xuống'),
             ],
           ),
           Expanded(
             child: TabBarView(
               controller: _tabController,
               children: [
-                LoginContentBuilder(
+                LoginContentStoriesBuilder(
                     futureStories: _futureStories,
                     storyBuilder: (stories) => ListStoryBuilder(
                           stories: stories,
                           context: context,
                         )),
-                LoginContentBuilder(
+                LoginContentStoriesBuilder(
+                    futureStories: _futureStories,
+                    storyBuilder: (stories) =>
+                        ListStoryBuilder(stories: stories, context: context)),
+                LoginContentStoriesBuilder(
                     futureStories: _futureStories,
                     storyBuilder: (stories) =>
                         ListStoryBuilder(stories: stories, context: context)),
@@ -95,3 +102,5 @@ class _FavouritePageState extends State<FavouritePage>
     );
   }
 }
+
+class LoginContentBuilder {}
