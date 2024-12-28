@@ -23,7 +23,7 @@ class ShowMore extends StatelessWidget {
             : Border.all(color: Colors.transparent),
         borderRadius: BorderRadius.circular(10),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
       child: Row(
         children: [
           Expanded(
@@ -42,7 +42,15 @@ class ShowMore extends StatelessWidget {
             onPressed: onShowMore, // Sử dụng callback khi nhấn nút
             child: const Row(
               children: [
-                Text('show more'),
+                Text(
+                  "Xem thêm",
+                  style: TextStyle(
+                    color: AppColors.magentaPurple,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+                SizedBox(width: 4),
                 Icon(Icons.navigate_next),
               ],
             ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:story/core/utils/navigation_utils.dart';
 import 'package:story/presentation/screens/edit_profile/edit_profile_screen.dart';
+import 'package:story/presentation/screens/vip/vip_subscription_screen.dart';
 
 import '../../../../core/services/auth_service.dart';
 import '../../../../core/services/clear_cache.dart';
@@ -30,6 +31,16 @@ Widget BuildSettingsSection(BuildContext context, bool isLoggedIn) {
                 ],
               ),
             ),
+          ),
+          SizedBox(height: 8),
+          SettingsOptionItem(
+            icon: Icons.edit,
+            title: 'VIP',
+            onTap: () {
+              NavigationUtils.navigateTo(context, VipSubscriptionPage());
+            },
+            showArrow: true,
+            isLoggedIn: isLoggedIn,
           ),
           SizedBox(height: 8),
           SettingsOptionItem(
