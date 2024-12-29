@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:story/core/services/favourite_service.dart';
 import 'package:story/core/services/history_service.dart';
+import 'package:story/presentation/screens/favourite/widget/history_builder.dart';
+import 'package:story/presentation/screens/favourite/widget/list_story_builder.dart';
 
 import '../../../core/constants/AppColors.dart';
 import '../../../models/story.dart';
 import '../../../storage/secure_tokenstorage.dart';
-import '../../widgets/list_story_builder.dart';
 import '../../widgets/login_content_stories_builder.dart';
 
 class FavouritePage extends StatefulWidget {
@@ -82,7 +83,7 @@ class _FavouritePageState extends State<FavouritePage>
               children: [
                 LoginContentStoriesBuilder(
                     futureStories: _futureStories,
-                    storyBuilder: (stories) => ListStoryBuilder(
+                    storyBuilder: (stories) => HistoryBuild(
                           stories: stories,
                           context: context,
                         )),
@@ -102,5 +103,3 @@ class _FavouritePageState extends State<FavouritePage>
     );
   }
 }
-
-class LoginContentBuilder {}

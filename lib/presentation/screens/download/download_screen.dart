@@ -91,7 +91,8 @@ class _DownloadScreenState extends State<DownloadScreen> {
       await _downloadService.downloadChapters(
         story: widget.story,
         chapters: chaptersToDownload,
-        chapterImages: [], // TODO: Pass actual chapter images
+        chapterImages: [],
+        // TODO: Pass actual chapter images
         onProgress: (chapterId, progress) {
           setState(() {
             downloadProgress[chapterId] = progress;
@@ -168,14 +169,16 @@ class _DownloadScreenState extends State<DownloadScreen> {
                     value: downloadProgress.isEmpty
                         ? 0
                         : downloadProgress.values
-                                .where((value) => value == 1.0)
-                                .length /
-                            totalChapters,
+                        .where((value) => value == 1.0)
+                        .length /
+                        totalChapters,
                     backgroundColor: Colors.grey[200],
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${downloadProgress.values.where((value) => value == 1.0).length}/$totalChapters chương đã tải',
+                    '${downloadProgress.values
+                        .where((value) => value == 1.0)
+                        .length}/$totalChapters chương đã tải',
                     style: TextStyle(
                       color: Colors.grey[600],
                       fontSize: 12,
@@ -210,7 +213,10 @@ class _DownloadScreenState extends State<DownloadScreen> {
           child: Container(
             decoration: BoxDecoration(
               color: selectedChapters.contains(chapter.chapter_id)
-                  ? Theme.of(context).primaryColor.withOpacity(0.8)
+                  ? Theme
+                  .of(context)
+                  .primaryColor
+                  .withOpacity(0.8)
                   : Colors.grey[800],
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
@@ -293,9 +299,10 @@ class _DownloadScreenState extends State<DownloadScreen> {
                 TextButton.icon(
                   onPressed: isDownloading
                       ? null
-                      : () => toggleSelectAll(
-                            selectedChapters.length != totalChapters,
-                          ),
+                      : () =>
+                      toggleSelectAll(
+                        selectedChapters.length != totalChapters,
+                      ),
                   icon: Icon(
                     selectedChapters.length == totalChapters
                         ? Icons.deselect
@@ -316,10 +323,15 @@ class _DownloadScreenState extends State<DownloadScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor.withOpacity(0.1),
+              color: Theme
+                  .of(context)
+                  .primaryColor
+                  .withOpacity(0.1),
               border: Border(
                 top: BorderSide(
-                  color: Theme.of(context).dividerColor,
+                  color: Theme
+                      .of(context)
+                      .dividerColor,
                 ),
               ),
             ),
@@ -333,17 +345,19 @@ class _DownloadScreenState extends State<DownloadScreen> {
                     ),
                     icon: isDownloading
                         ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
                         : const Icon(Icons.download),
                     label: Text(
                       isDownloading
-                          ? "Đang tải ${downloadProgress.values.where((v) => v == 1.0).length}/${selectedChapters.length} chương..."
+                          ? "Đang tải ${downloadProgress.values
+                          .where((v) => v == 1.0)
+                          .length}/${selectedChapters.length} chương..."
                           : "Tải ${selectedChapters.length} chương đã chọn",
                     ),
                   ),

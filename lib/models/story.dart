@@ -5,6 +5,7 @@ import 'ratings.dart';
 
 class Story {
   final int story_id;
+  final int chapter_id;
   final String title;
   final String author;
   final String description;
@@ -24,6 +25,7 @@ class Story {
 
   Story(
       {required this.story_id,
+      required this.chapter_id,
       required this.title,
       required this.read_at,
       required this.updated_at,
@@ -44,6 +46,7 @@ class Story {
   factory Story.fromJson(Map<String, dynamic> json) {
     return Story(
       story_id: json['id'] ?? 0,
+      chapter_id: json['chapter_id'] ?? 0,
       title: json['title'] ?? '',
       views: json['views'] ?? 0,
       status: json['status'] ?? 1,

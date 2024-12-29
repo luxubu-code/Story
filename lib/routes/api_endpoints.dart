@@ -33,7 +33,7 @@ class ApiEndpoints {
   static const String history = '$baseUrl/api/history/';
 
   //Favourite
-  static const String getFavourite = '$baseUrl/api/favourite';
+  static const String getFavourite = '$baseUrl/api/favourite/';
   static const String postFavourite = '$baseUrl/api/favourite/';
   static const String checkFavourite = '$baseUrl/api/favourite/exists/';
   static const String deleteFavourite = '$baseUrl/api/favourite/';

@@ -15,16 +15,30 @@ import 'api_service.dart';
 import 'provider/auth_provider_check.dart';
 
 class AuthService {
-  final GoogleSignIn googleSignIn = GoogleSignIn();
+  // final GoogleSignIn googleSignIn = GoogleSignIn();
   final FirebaseAuth auth = FirebaseAuth.instance;
 
+// Initialize GoogleSignIn with specific configuration
+  final GoogleSignIn googleSignIn = GoogleSignIn(
+    forceCodeForRefreshToken: true,
+    signInOption: SignInOption.standard,
+  );
+
   Future<Map<String, dynamic>?> signInWithGoogle(BuildContext context) async {
+    await SecureTokenStorage.deleteUser();
+    await SecureTokenStorage.deleteToken();
     try {
+      // Sign out before signing in to ensure fresh account selection
+      await googleSignIn.signOut();
+
+      // Attempt to sign in and show account picker
       final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+
       if (googleUser == null) {
         print("Người dùng đã hủy đăng nhập");
         return null;
       }
+
       return await _handleSignIn(googleUser, context);
     } catch (e) {
       print('Lỗi chi tiết: $e');
@@ -36,12 +50,14 @@ class AuthService {
   Future<Map<String, dynamic>> _handleSignIn(
       GoogleSignInAccount googleUser, BuildContext context) async {
     try {
+      // Get authentication details from Google
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
 
-      // In ra token để debug
+      // Debug logging for token verification
       print('Google ID Token: ${googleAuth.idToken?.substring(0, 20)}...');
 
+      // Make API request to your backend
       final data = await ApiService.request(
         url: ApiEndpoints.postGoogle,
         method: "POST",
@@ -49,14 +65,14 @@ class AuthService {
         isJson: false,
       );
 
-      // Kiểm tra dữ liệu chi tiết
+      // Validate API response
       if (data == null) {
         throw Exception('Phản hồi API trả về null');
       }
 
       print('Cấu trúc dữ liệu nhận được: ${data.keys.toList()}');
 
-      // Kiểm tra từng trường dữ liệu
+      // Validate required fields in response
       if (!data.containsKey('access_token')) {
         throw Exception('Thiếu trường access_token trong phản hồi');
       }
@@ -64,13 +80,15 @@ class AuthService {
         throw Exception('Thiếu thông tin user trong phản hồi');
       }
 
-      // Xử lý dữ liệu khi mọi thứ hợp lệ
+      // Store authentication token securely
       await SecureTokenStorage.saveToken(data['access_token']);
 
+      // Update authentication state in provider
       final authProvider =
           Provider.of<AuthProviderCheck>(context, listen: false);
       await authProvider.login(data['access_token']);
 
+      // Save user data
       UserModel user = UserModel.fromJson(data['data']);
       await SecureTokenStorage.saveUser(user);
 
@@ -86,24 +104,51 @@ class AuthService {
   Future<void> login(
       String email, String password, BuildContext context) async {
     try {
-      final data = await ApiService.request(
+      // Clear existing credentials
+      await SecureTokenStorage.deleteUser();
+      await SecureTokenStorage.deleteToken();
+
+      // Make the API request
+      final response = await ApiService.request(
         url: ApiEndpoints.login,
         method: "POST",
         body: {'email': email, 'password': password},
         isJson: false,
       );
 
-      await SecureTokenStorage.saveToken(data['access_token']);
-      UserModel user = UserModel.fromJson(data['user']);
+      // Validate response
+      if (response == null) {
+        throw Exception('Dữ liệu API trả về null');
+      }
+
+      // Validate access token
+      if (!response.containsKey('access_token') ||
+          response['access_token'] == null) {
+        throw Exception('Thiếu hoặc null access_token trong phản hồi');
+      }
+
+      // Extract user data from the 'data' field
+      if (!response.containsKey('data') || response['data'] == null) {
+        throw Exception('Thiếu hoặc null data trong phản hồi');
+      }
+
+      // Save token
+      final token = response['access_token'];
+      await SecureTokenStorage.saveToken(token);
+
+      // Create and save user model
+      UserModel user = UserModel.fromJson(response['data']);
       await SecureTokenStorage.saveUser(user);
 
+      // Update auth state
       final authProvider =
           Provider.of<AuthProviderCheck>(context, listen: false);
-      await authProvider.login(data['access_token']);
+      await authProvider.login(token);
+
       Snack_Bar('Đăng nhập thành công');
     } catch (e) {
       print('Lỗi khi đăng nhập: $e');
-      Snack_Bar('Đăng nhập thất bại: $e');
+      Snack_Bar('Đăng nhập thất bại: ${e.toString()}');
     }
   }
 

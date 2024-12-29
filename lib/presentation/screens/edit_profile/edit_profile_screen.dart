@@ -88,11 +88,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
     );
-
     if (picked != null) {
+      // Chuyển đổi ngày chọn được thành định dạng `YYYY-MM-DD`
+      String formattedDate =
+          "${picked.year.toString().padLeft(4, '0')}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
       setState(() {
-        _dobController.text = DateFormat('dd/MM/yyyy').format(picked);
+        _dobController.text = formattedDate;
       });
+      print("Ngày đã chọn: $formattedDate");
     }
   }
 
