@@ -58,7 +58,7 @@ class StoryService {
     }
     try {
       final stories =
-          await ApiHelper.fetchDataStory(url: ApiEndpoints.getStories);
+      await ApiHelper.fetchDataStory(url: ApiEndpoints.getStories);
       _cacheManager.setItem(key, stories,
           duration: const Duration(minutes: 15));
       print('Fetching stories from API');
@@ -97,16 +97,16 @@ class StoryService {
 
   Future<List<Story>> fetchStoriesSearch(String searchQuery) async {
     final url =
-        Uri.parse('${ApiEndpoints.getStoriesSearch}?search=$searchQuery');
+    Uri.parse('${ApiEndpoints.getStoriesSearch}?search=$searchQuery');
     final headers = {
       'Content-Type': 'application/json',
     };
     try {
       final response = await http
           .get(
-            url,
-            headers: headers,
-          )
+        url,
+        headers: headers,
+      )
           .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
