@@ -76,6 +76,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             ? UserWidget(
                                 avataUrl: user?.avatar_url,
                                 name: user?.name,
+                                isVip: user!.isVip,
                               )
                             : login_widget(context),
                       ),

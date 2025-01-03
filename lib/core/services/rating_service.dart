@@ -2,11 +2,13 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:story/models/ratings.dart';
 
 import '../../routes/api_endpoints.dart';
 import '../../storage/secure_tokenstorage.dart';
+import 'error_handling_service.dart';
 
 class RatingService {
   Future<List<Ratings>> fetchRatings(int story_id) async {
@@ -70,5 +72,31 @@ class RatingService {
     } catch (e) {
       throw Exception('Unexpected error: $e');
     }
+  }
+
+  Future<bool> deleteRating(int id, BuildContext context) async {
+    return await ErrorHandler.handleError(
+      operation: () async {
+        final String? token = await SecureTokenStorage.getToken();
+        final url = Uri.parse('${ApiEndpoints.deleteRatings}/$id');
+        final headers = {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        };
+        final response = await http
+            .delete(url, headers: headers)
+            .timeout(const Duration(seconds: 10));
+        if (response.statusCode == 200) {
+          final responseData = jsonDecode(response.body);
+          return responseData['status'] == 'success';
+        } else {
+          throw HttpException(
+              'Request failed with status: ${response.statusCode}');
+        }
+      },
+      context: context,
+      customMessage: 'Không thể xóa đánh giá. Vui lòng thử lại sau.',
+    );
   }
 }

@@ -1,12 +1,26 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/services/comment_service.dart';
 import '../../../../core/utils/dateTimeFormatUtils.dart';
 import '../../../../models/comment.dart';
 
-class CommentWidget extends StatelessWidget {
+class CommentWidget extends StatefulWidget {
   final Comment comment;
+  final bool isMyComment;
+  final VoidCallback onCommentDeleted;
 
-  const CommentWidget({Key? key, required this.comment}) : super(key: key);
+  CommentWidget(
+      {super.key,
+      required this.comment,
+      required this.isMyComment,
+      required this.onCommentDeleted});
+
+  @override
+  State<CommentWidget> createState() => _CommentWidgetState();
+}
+
+class _CommentWidgetState extends State<CommentWidget> {
+  final CommentService _commentService = CommentService();
 
   @override
   Widget build(BuildContext context) {
@@ -41,8 +55,9 @@ class CommentWidget extends StatelessWidget {
                   children: [
                     CircleAvatar(
                       radius: 24,
-                      backgroundImage: (comment.user[0].avatar_url.isNotEmpty)
-                          ? NetworkImage(comment.user[0].avatar_url)
+                      backgroundImage: (widget
+                              .comment.user[0].avatar_url.isNotEmpty)
+                          ? NetworkImage(widget.comment.user[0].avatar_url)
                           : AssetImage('assets/avatar.png') as ImageProvider,
                     ),
                   ],
@@ -53,7 +68,7 @@ class CommentWidget extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        comment.user[0].name,
+                        widget.comment.user[0].name,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
@@ -62,7 +77,7 @@ class CommentWidget extends StatelessWidget {
                       ),
                       SizedBox(height: 4),
                       Text(
-                        comment.content,
+                        widget.comment.content,
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.white,
@@ -71,7 +86,7 @@ class CommentWidget extends StatelessWidget {
                       ),
                       SizedBox(height: 8),
                       Text(
-                        time(comment.created_at),
+                        time(widget.comment.created_at),
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.white70,
@@ -86,7 +101,6 @@ class CommentWidget extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                // Nút thích bình luận
                 GestureDetector(
                   onTap: () async {
                     // Gọi API để tăng lượt like của bình luận
@@ -101,19 +115,91 @@ class CommentWidget extends StatelessWidget {
                     children: [
                       Icon(Icons.favorite, color: Colors.white70, size: 18),
                       SizedBox(width: 4),
-                      Text('${comment.like}',
-                          style: TextStyle(color: Colors.white70)),
+                      Text(
+                        '${widget.comment.like}',
+                        style: TextStyle(color: Colors.white70),
+                      ),
+                      SizedBox(width: 16),
+                      if (widget.isMyComment)
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            GestureDetector(
+                              onTap: () async {
+                                // Hiển thị hộp thoại xác nhận
+                                bool? confirmDelete = await showDialog<bool>(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: Text('Xóa bình luận'),
+                                    content: Text(
+                                        'Bạn có chắc chắn muốn xóa bình luận này?'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(false),
+                                        child: Text('Hủy'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(true),
+                                        child: Text('Xóa'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                                if (confirmDelete == true) {
+                                  try {
+                                    bool? success =
+                                        await _commentService.deleteComment(
+                                            widget.comment.comment_id, context);
+                                    if (success) {
+                                      widget.onCommentDeleted();
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                            content: Text('Đã xóa bình luận')),
+                                      );
+                                    } else {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                            content: Text(
+                                                'Không thể xóa bình luận')),
+                                      );
+                                    }
+                                  } catch (e) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                          content: Text('Đã xảy ra lỗi: $e')),
+                                    );
+                                  }
+                                }
+                              },
+                              child: Row(
+                                children: [
+                                  Icon(Icons.delete,
+                                      color: Colors.red, size: 18),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    'Xóa',
+                                    style: TextStyle(color: Colors.red),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                     ],
                   ),
                 ),
                 // Nút trả lời bình luận
                 SizedBox(
-                  width: 30,
+                  width: 16,
                 ),
                 GestureDetector(
                   onTap: () {
-                    _showReplyInput(
-                        comment.parent_id, context); // Gọi hàm mở modal trả lời
+                    _showReplyInput(widget.comment.parent_id,
+                        context); // Gọi hàm mở modal trả lời
                   },
                   child: Text(
                     'Trả lời',
@@ -122,10 +208,13 @@ class CommentWidget extends StatelessWidget {
                 ),
               ],
             ),
-            if (comment.replies != null && comment.replies!.isNotEmpty) ...[
+            if (widget.comment.replies != null &&
+                widget.comment.replies!.isNotEmpty) ...[
               SizedBox(height: 8),
               // Danh sách các câu trả lời của bình luận
-              ...comment.replies!.map((reply) => _buildReply(reply)).toList(),
+              ...widget.comment.replies!
+                  .map((reply) => _buildReply(reply))
+                  .toList(),
             ]
           ],
         ),

@@ -86,7 +86,7 @@ class AuthService {
       // Update authentication state in provider
       final authProvider =
           Provider.of<AuthProviderCheck>(context, listen: false);
-      await authProvider.login(data['access_token']);
+      authProvider.login(data['access_token']);
 
       // Save user data
       UserModel user = UserModel.fromJson(data['data']);
@@ -143,7 +143,7 @@ class AuthService {
       // Update auth state
       final authProvider =
           Provider.of<AuthProviderCheck>(context, listen: false);
-      await authProvider.login(token);
+      authProvider.login(token);
 
       Snack_Bar('Đăng nhập thành công');
     } catch (e) {
@@ -202,7 +202,7 @@ class AuthService {
     final authProvider = Provider.of<AuthProviderCheck>(context, listen: false);
     await SecureTokenStorage.deleteUser();
     await SecureTokenStorage.deleteToken();
-    await authProvider.logout();
+    authProvider.logout();
 
     Snack_Bar('Đã đăng xuất');
     Navigator.pushAndRemoveUntil(

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:story/core/constants/AppColors.dart';
 import 'package:story/core/services/comment_service.dart';
 
+import '../../../../core/services/provider/auth_provider_check.dart';
 import '../../../../core/utils/future_widget.dart';
 import '../../../../models/category.dart';
 import '../../../../models/comment.dart';
@@ -40,8 +42,16 @@ class _BodyDetailState extends State<BodyDetail> {
     _loadComment();
   }
 
+  void _refreshComments() {
+    setState(() {
+      _futureComment =
+          _commentService.fetchMostLikesComment(1, widget.story_id, context);
+    });
+  }
+
   void _loadComment() {
-    _futureComment = _commentService.fetchMostLikesComment(1, widget.story_id);
+    _futureComment =
+        _commentService.fetchMostLikesComment(1, widget.story_id, context);
   }
 
   void showComments() {
@@ -57,6 +67,8 @@ class _BodyDetailState extends State<BodyDetail> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProviderCheck>(context, listen: false);
+
     return SingleChildScrollView(
       child: Stack(
         children: [
@@ -96,8 +108,12 @@ class _BodyDetailState extends State<BodyDetail> {
               ),
               buildFuture(
                 futureList: _futureComment,
-                itemBuilder: (context, comment) =>
-                    CommentWidget(comment: comment),
+                itemBuilder: (context, comment) => CommentWidget(
+                  comment: comment,
+                  isMyComment:
+                      authProvider.currentUser?.id == comment.user[0].id,
+                  onCommentDeleted: _refreshComments,
+                ),
               ),
             ],
           ),

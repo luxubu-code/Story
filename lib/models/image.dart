@@ -11,11 +11,15 @@ class ImagePath {
     required this.id_chapter,
   });
 
-  factory ImagePath.fromJson(Map<String, dynamic> json) {
+  // Add a getter to construct the full path
+  String get path => '$base_url$file_name';
+
+  factory ImagePath.fromJson(Map json) {
     return ImagePath(
-        id_story: json['id_story'] ?? 0,
-        base_url: json['base_url'] ?? '',
-        file_name: json['file_name'] ?? '',
-        id_chapter: json['id_chapter'] ?? 0);
+      id_story: json['id_story'] ?? 0,
+      base_url: json['base_url'] ?? '',
+      file_name: json['file_name'] ?? '',
+      id_chapter: json['id_chapter'] ?? 0,
+    );
   }
 }

@@ -25,6 +25,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   bool _isEditing = false;
   String _email = '';
   DateTime? _creationDate;
+  String vip = '';
 
   @override
   void initState() {
@@ -43,7 +44,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       }
 
       final user = await authService.fetchUser();
-
+      if (user.isVip) {
+        setState(() {
+          vip = 'Vip';
+        });
+      } else {
+        vip = 'bình thường ';
+      }
       setState(() {
         _nameController.text = user.name;
         _dobController.text = _formatDate(user.date_of_birth);
@@ -194,6 +201,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       email: _email,
                       creationDate: _creationDate ?? DateTime.now(),
                       pickDate: _selectDate,
+                      vip: vip,
                     ),
                     SizedBox(height: 30),
                     if (_isEditing)

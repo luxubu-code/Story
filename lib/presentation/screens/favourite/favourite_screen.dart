@@ -3,6 +3,7 @@ import 'package:story/core/services/favourite_service.dart';
 import 'package:story/core/services/history_service.dart';
 import 'package:story/presentation/screens/favourite/widget/history_builder.dart';
 import 'package:story/presentation/screens/favourite/widget/list_story_builder.dart';
+import 'package:story/presentation/screens/storydowload/downloaded_stories_screen.dart';
 
 import '../../../core/constants/AppColors.dart';
 import '../../../models/story.dart';
@@ -93,8 +94,11 @@ class _FavouritePageState extends State<FavouritePage>
                         ListStoryBuilder(stories: stories, context: context)),
                 LoginContentStoriesBuilder(
                     futureStories: _futureStories,
-                    storyBuilder: (stories) =>
-                        ListStoryBuilder(stories: stories, context: context)),
+                    storyBuilder: (stories) => DownloadedStoriesScreen()),
+                // LoginContentStoriesBuilder(
+                //     futureStories: _futureStories,
+                //     storyBuilder: (stories) =>
+                //         ListStoryBuilder(stories: stories, context: context)),
               ],
             ),
           ),

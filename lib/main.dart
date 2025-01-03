@@ -1,5 +1,6 @@
 import 'dart:io' show Platform;
 
+import 'package:dio/dio.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +11,7 @@ import 'package:story/presentation/screens/rank/rank_screen.dart';
 
 import 'core/services/provider/auth_provider_check.dart';
 import 'core/services/provider/rank_provider.dart';
+import 'core/services/provider/subscription_provider.dart';
 import 'core/services/provider/user_provider.dart';
 import 'firebase_options.dart';
 import 'presentation/screens/favourite/favourite_screen.dart';
@@ -40,6 +42,10 @@ void main() async {
         ChangeNotifierProvider(create: (_) => AuthProviderCheck()),
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => RankStateProvider()),
+        ChangeNotifierProvider(
+            create: (_) => SubscriptionProvider(
+                dio: Dio() // Configure your Dio instance as needed
+                ))
       ],
       child: MyApp(),
     ),

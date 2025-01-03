@@ -165,7 +165,7 @@ class _AvatarDetailStoryState extends State<AvatarDetailStory> {
                             Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => LogginScreen()));
+                                    builder: (context) => LoginScreen()));
                           }
                         },
                         child: AnimatedContainer(

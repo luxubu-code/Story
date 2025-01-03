@@ -6,6 +6,7 @@ class BodyEditProfile extends StatelessWidget {
   final TextEditingController nameController;
   final TextEditingController dobController;
   final bool isEditing;
+  final String vip;
 
   // Add new parameters for email and creation date
   final String email;
@@ -19,6 +20,7 @@ class BodyEditProfile extends StatelessWidget {
     required this.isEditing,
     required this.email,
     required this.creationDate,
+    required this.vip,
   }) : super(key: key);
 
   @override
@@ -27,6 +29,7 @@ class BodyEditProfile extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildLabel("Thông Tin Tài Khoản"),
+        _buildLabel("Tài Khoản : ${vip}"),
 
         // Email Section with Verification Status
         _buildLabel("Email"),

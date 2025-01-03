@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:story/core/utils/navigation_utils.dart';
 import 'package:story/presentation/screens/edit_profile/edit_profile_screen.dart';
 import 'package:story/presentation/screens/vip/vip_subscription_screen.dart';
+import 'package:story/presentation/screens/vip_history/subscription_history_screen.dart';
 
 import '../../../../core/services/auth_service.dart';
 import '../../../../core/services/clear_cache.dart';
+import '../../../../core/services/download_service.dart';
 import '../../../../core/utils/SettingsSection.dart';
 import 'SettingsOptionItem.dart';
 
@@ -34,10 +37,20 @@ Widget BuildSettingsSection(BuildContext context, bool isLoggedIn) {
           ),
           SizedBox(height: 8),
           SettingsOptionItem(
-            icon: Icons.edit,
+            icon: FontAwesomeIcons.crown,
             title: 'VIP',
             onTap: () {
               NavigationUtils.navigateTo(context, VipSubscriptionPage());
+            },
+            showArrow: true,
+            isLoggedIn: isLoggedIn,
+          ),
+          SizedBox(height: 8),
+          SettingsOptionItem(
+            icon: FontAwesomeIcons.crown,
+            title: 'Lịch sử đăng ký VIP',
+            onTap: () {
+              NavigationUtils.navigateTo(context, SubscriptionHistoryScreen());
             },
             showArrow: true,
             isLoggedIn: isLoggedIn,
@@ -56,7 +69,9 @@ Widget BuildSettingsSection(BuildContext context, bool isLoggedIn) {
           SettingsOptionItem(
             icon: Icons.delete,
             title: 'Xóa bộ nhớ tạm',
-            onTap: () {
+            onTap: () async {
+              await DownloadService().clearAllDownloads();
+
               ClearCache().clearAllCache(context);
             },
             showArrow: true,

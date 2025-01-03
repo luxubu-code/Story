@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:story/core/services/comment_service.dart';
 
+import '../../../../core/services/provider/auth_provider_check.dart';
 import '../../../../core/utils/future_widget.dart';
 import '../../../../models/comment.dart';
 import 'comment_widget.dart';
@@ -32,11 +34,20 @@ class _CommentPageState extends State<CommentPage> {
   }
 
   void _loadComment() {
-    _futureComments = _commentService.fetchComment(widget.story_id);
+    _futureComments = _commentService.fetchComment(widget.story_id, context);
+  }
+
+  void _refreshComments() {
+    setState(() {
+      _futureComments = _commentService.fetchComment(widget.story_id, context);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProviderCheck>(context, listen: false);
+    print('người dùng hiện tại ${authProvider.currentUser?.id}');
+    print('người dùng hiện tại ${authProvider.currentUser?.name}');
     return DraggableScrollableSheet(
       expand: false,
       builder: (context, controller) => Container(
@@ -87,6 +98,9 @@ class _CommentPageState extends State<CommentPage> {
                   futureList: _futureComments,
                   itemBuilder: (context, comment) => CommentWidget(
                     comment: comment,
+                    isMyComment:
+                        authProvider.currentUser?.id == comment.user[0].id,
+                    onCommentDeleted: _refreshComments,
                   ),
                 ),
               ),
@@ -145,16 +159,26 @@ class _CommentPageState extends State<CommentPage> {
   Widget _buildSendButton() {
     return GestureDetector(
       onTap: () async {
-        if (_commentController.text.isNotEmpty) {
-          bool success = await _commentService.postComment(
-              widget.story_id, null, _commentController.text);
-          if (success) {
-            _commentController.clear();
-            setState(() {
-              _loadComment();
-            });
-            Navigator.pop(context); // Đóng modal hiện tại
-            showComments();
+        if (_commentController.text.trim().isNotEmpty) {
+          try {
+            bool success = await _commentService.postComment(
+                widget.story_id, null, _commentController.text.trim(), context);
+            if (success) {
+              _commentController.clear();
+              setState(() {
+                _loadComment();
+              });
+              Navigator.pop(context); // Close current modal
+              showComments(); // Reopen comments with updated list
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Không thể đăng bình luận')),
+              );
+            }
+          } catch (e) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Đã xảy ra lỗi: $e')),
+            );
           }
         }
       },

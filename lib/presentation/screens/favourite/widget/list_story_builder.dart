@@ -1,38 +1,89 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/constants/AppColors.dart';
+import '../../../../core/services/favourite_service.dart';
 import '../../../../core/utils/dateTimeFormatUtils.dart';
+import '../../../../core/utils/navigation_utils.dart';
 import '../../../../models/story.dart';
 import '../../detail_story/detail_story_screen.dart';
 
-class ListStoryBuilder extends StatelessWidget {
+class ListStoryBuilder extends StatefulWidget {
   final List<Story> stories;
   final BuildContext context;
 
   const ListStoryBuilder(
       {super.key, required this.stories, required this.context});
 
-  void toDetailStory(id) {
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => DetailStoryScreen(
-            story_id: id,
-            onShowComments: () {},
-          ),
-        ));
+  @override
+  State<ListStoryBuilder> createState() => _ListStoryBuilder();
+}
+
+class _ListStoryBuilder extends State<ListStoryBuilder> {
+  bool isExists = false;
+  final FavouriteService favouriteService = FavouriteService();
+  late List<bool> favourites;
+
+  //late Future<String?> token;
+  @override
+  void initState() {
+    super.initState();
+    favourites = List.generate(widget.stories.length, (_) => false);
+    _checkFavourites();
+  }
+
+  Future<void> _checkFavourites() async {
+    for (int i = 0; i < widget.stories.length; i++) {
+      final isFavourite = await favouriteService
+          .checkStoriesFavourite(widget.stories[i].story_id);
+      if (mounted) {
+        setState(() {
+          favourites[i] = isFavourite;
+        });
+      }
+    }
+  }
+
+  Future<void> _toggleFavourite(int index) async {
+    try {
+      final storyId = widget.stories[index].story_id;
+      final success = favourites[index]
+          ? await favouriteService.deleteStoriesFavourite(storyId)
+          : await favouriteService.postStoriesFavourite(storyId);
+
+      if (success) {
+        setState(() {
+          favourites[index] = !favourites[index];
+        });
+        _showSnackBar(favourites[index]
+            ? 'Đã thêm vào yêu thích'
+            : 'Đã xóa khỏi yêu thích');
+      } else {
+        _showSnackBar(favourites[index]
+            ? 'Xóa khỏi yêu thích thất bại'
+            : 'Thêm vào yêu thích thất bại');
+      }
+    } catch (e) {
+      _showSnackBar('Có lỗi xảy ra');
+    }
+  }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
-      itemCount: stories.length,
+      itemCount: widget.stories.length,
       itemBuilder: (context, index) {
-        final story = stories[index];
-        print(story.toString());
-        print(story.totalChapter);
+        final story = widget.stories[index];
         return GestureDetector(
-          onTap: () => toDetailStory(story.story_id),
+          onTap: () => NavigationUtils.navigateTo(
+              context,
+              DetailStoryScreen(
+                  story_id: story.story_id, onShowComments: () {})),
           child: Card(
             elevation: 3,
             margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
@@ -127,7 +178,15 @@ class ListStoryBuilder extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Icon(Icons.favorite, size: 18, color: Colors.grey[400]),
+                    GestureDetector(
+                      onTap: () => _toggleFavourite(index),
+                      child: Icon(
+                        Icons.favorite,
+                        size: 18,
+                        color:
+                            favourites[index] ? Colors.red : Colors.grey[400],
+                      ),
+                    ),
                   ],
                 ),
               ),

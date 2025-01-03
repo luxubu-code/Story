@@ -2,22 +2,82 @@ import 'package:flutter/material.dart';
 import 'package:story/core/utils/navigation_utils.dart';
 
 import '../../../../core/constants/AppColors.dart';
+import '../../../../core/services/favourite_service.dart';
 import '../../../../core/utils/dateTimeFormatUtils.dart';
 import '../../../../models/story.dart';
 import '../../chapter/chapter_screen.dart';
 
-class HistoryBuild extends StatelessWidget {
+class HistoryBuild extends StatefulWidget {
   final List<Story> stories;
   final BuildContext context;
 
   const HistoryBuild({super.key, required this.stories, required this.context});
 
   @override
+  State<HistoryBuild> createState() => _HistoryBuild();
+}
+
+class _HistoryBuild extends State<HistoryBuild> {
+  bool isExists = false;
+  final FavouriteService favouriteService = FavouriteService();
+  late List<bool> favourites;
+
+  //late Future<String?> token;
+  @override
+  void initState() {
+    super.initState();
+    favourites = List.generate(widget.stories.length, (_) => false);
+    _checkFavourites();
+  }
+
+  Future<void> _checkFavourites() async {
+    for (int i = 0; i < widget.stories.length; i++) {
+      final isFavourite = await favouriteService
+          .checkStoriesFavourite(widget.stories[i].story_id);
+      if (mounted) {
+        setState(() {
+          favourites[i] = isFavourite;
+        });
+      }
+    }
+  }
+
+  Future<void> _toggleFavourite(int index) async {
+    try {
+      final storyId = widget.stories[index].story_id;
+      final success = favourites[index]
+          ? await favouriteService.deleteStoriesFavourite(storyId)
+          : await favouriteService.postStoriesFavourite(storyId);
+
+      if (success) {
+        setState(() {
+          favourites[index] = !favourites[index];
+        });
+        _showSnackBar(favourites[index]
+            ? 'Đã thêm vào yêu thích'
+            : 'Đã xóa khỏi yêu thích');
+      } else {
+        _showSnackBar(favourites[index]
+            ? 'Xóa khỏi yêu thích thất bại'
+            : 'Thêm vào yêu thích thất bại');
+      }
+    } catch (e) {
+      _showSnackBar('Có lỗi xảy ra');
+    }
+  }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return ListView.builder(
-      itemCount: stories.length,
+      itemCount: widget.stories.length,
       itemBuilder: (context, index) {
-        final story = stories[index];
+        final story = widget.stories[index];
         return GestureDetector(
           onTap: () => NavigationUtils.navigateTo(
             context,
@@ -119,7 +179,15 @@ class HistoryBuild extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Icon(Icons.favorite, size: 18, color: Colors.grey[400]),
+                    GestureDetector(
+                      onTap: () => _toggleFavourite(index),
+                      child: Icon(
+                        Icons.favorite,
+                        size: 18,
+                        color:
+                            favourites[index] ? Colors.red : Colors.grey[400],
+                      ),
+                    ),
                   ],
                 ),
               ),

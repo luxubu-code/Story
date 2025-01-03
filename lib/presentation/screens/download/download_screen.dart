@@ -29,46 +29,31 @@ class _DownloadScreenState extends State<DownloadScreen> {
   void initState() {
     super.initState();
     totalChapters = widget.chapters.length;
+    // Start with all chapters selected by default
     selectedChapters = widget.chapters.map((c) => c.chapter_id).toList();
     _initializeDownloadStatus();
   }
 
   Future<void> _initializeDownloadStatus() async {
+    // Check story download status first
     final isStoryDownloaded = await _downloadService.isStoryDownloaded(
       widget.story.story_id,
     );
 
-    for (var chapter in widget.chapters) {
-      final isDownloaded = await _downloadService.isChapterDownloaded(
-        widget.story.story_id,
-        chapter.chapter_id,
-      );
-      if (isDownloaded) {
-        setState(() {
-          downloadProgress[chapter.chapter_id] = 1.0;
-        });
+    // Then check individual chapters
+    if (isStoryDownloaded) {
+      for (var chapter in widget.chapters) {
+        final isDownloaded = await _downloadService.isChapterDownloaded(
+          widget.story.story_id,
+          chapter.chapter_id,
+        );
+        if (isDownloaded) {
+          setState(() {
+            downloadProgress[chapter.chapter_id] = 1.0;
+          });
+        }
       }
     }
-  }
-
-  void toggleChapter(int chapterId) {
-    setState(() {
-      if (selectedChapters.contains(chapterId)) {
-        selectedChapters.remove(chapterId);
-      } else {
-        selectedChapters.add(chapterId);
-      }
-    });
-  }
-
-  void toggleSelectAll(bool? value) {
-    setState(() {
-      if (value == true) {
-        selectedChapters = widget.chapters.map((c) => c.chapter_id).toList();
-      } else {
-        selectedChapters.clear();
-      }
-    });
   }
 
   Future<void> startDownload() async {
@@ -84,41 +69,82 @@ class _DownloadScreenState extends State<DownloadScreen> {
     });
 
     try {
+      // Get only the selected chapters from the full chapter list
       final chaptersToDownload = widget.chapters
           .where((c) => selectedChapters.contains(c.chapter_id))
           .toList();
 
-      await _downloadService.downloadChapters(
-        story: widget.story,
-        chapters: chaptersToDownload,
-        chapterImages: [],
-        // TODO: Pass actual chapter images
-        onProgress: (chapterId, progress) {
-          setState(() {
-            downloadProgress[chapterId] = progress;
-          });
-        },
-        onComplete: (chapterId, error) {
-          if (error != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Lỗi tải chương $chapterId: $error')),
-            );
-          }
-        },
-      );
+      // Start the download process
+      try {
+        await _downloadService.downloadStory(
+          story: widget.story,
+          chapters: chaptersToDownload,
+          onProgress: (chapterId, progress) {
+            setState(() {
+              downloadProgress[chapterId] = progress;
+            });
+          },
+          onComplete: (chapterId, error) {
+            if (error != null) {
+              print('Lỗi tải chương $chapterId: ${error.toString()}');
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content:
+                      Text('Lỗi tải chương $chapterId: ${error.toString()}'),
+                  duration: const Duration(seconds: 5),
+                ),
+              );
+            }
+          },
+        );
+      } catch (e) {
+        if (mounted) {
+          print('Lỗi tải  ${e.toString()}');
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Tải xuống hoàn tất')),
-      );
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Lỗi không xác định: ${e.toString()}'),
+              duration: const Duration(seconds: 5),
+            ),
+          );
+        }
+      }
+
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Tải xuống hoàn tất'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi: ${e.toString()}')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lỗi: ${e.toString()}'),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
     } finally {
-      setState(() {
-        isDownloading = false;
-      });
+      if (mounted) {
+        setState(() {
+          isDownloading = false;
+        });
+      }
     }
+  }
+
+  void toggleSelectAll(bool? value) {
+    setState(() {
+      if (value == true) {
+        selectedChapters = widget.chapters.map((c) => c.chapter_id).toList();
+      } else {
+        selectedChapters.clear();
+      }
+    });
   }
 
   Widget _buildStoryHeader() {
@@ -150,6 +176,29 @@ class _DownloadScreenState extends State<DownloadScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          widget.story.title,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      // Thêm nút xóa truyện
+                      if (downloadProgress.isNotEmpty)
+                        IconButton(
+                          onPressed: () => _showDeleteConfirmation(context),
+                          icon: const Icon(Icons.delete_outline),
+                          color: Colors.red,
+                          tooltip: 'Xóa truyện',
+                        ),
+                    ],
+                  ),
                   Text(
                     widget.story.title,
                     style: const TextStyle(
@@ -169,16 +218,14 @@ class _DownloadScreenState extends State<DownloadScreen> {
                     value: downloadProgress.isEmpty
                         ? 0
                         : downloadProgress.values
-                        .where((value) => value == 1.0)
-                        .length /
-                        totalChapters,
+                                .where((value) => value == 1.0)
+                                .length /
+                            totalChapters,
                     backgroundColor: Colors.grey[200],
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${downloadProgress.values
-                        .where((value) => value == 1.0)
-                        .length}/$totalChapters chương đã tải',
+                    '${downloadProgress.values.where((value) => value == 1.0).length}/$totalChapters chương đã tải',
                     style: TextStyle(
                       color: Colors.grey[600],
                       fontSize: 12,
@@ -189,6 +236,111 @@ class _DownloadScreenState extends State<DownloadScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void toggleChapter(int chapterId) {
+    setState(() {
+      if (selectedChapters.contains(chapterId)) {
+        selectedChapters.remove(chapterId);
+      } else {
+        selectedChapters.add(chapterId);
+      }
+    });
+  }
+
+  Future<void> _deleteChapter(Chapter chapter) async {
+    try {
+      await _downloadService.deleteChapter(
+        widget.story.story_id,
+        chapter.chapter_id,
+      );
+      setState(() {
+        downloadProgress.remove(chapter.chapter_id);
+        if (selectedChapters.contains(chapter.chapter_id)) {
+          selectedChapters.remove(chapter.chapter_id);
+        }
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Đã xóa ${chapter.title}'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lỗi khi xóa chương: ${e.toString()}'),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _deleteStory() async {
+    try {
+      await _downloadService.deleteStory(widget.story.story_id);
+
+      // Cập nhật UI sau khi xóa
+      setState(() {
+        downloadProgress.clear();
+        selectedChapters.clear();
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đã xóa truyện khỏi bộ nhớ'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lỗi khi xóa truyện: ${e.toString()}'),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  void _showDeleteConfirmation(BuildContext context, {Chapter? chapter}) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(chapter == null ? 'Xóa truyện' : 'Xóa chương'),
+        content: Text(chapter == null
+            ? 'Bạn có chắc chắn muốn xóa toàn bộ truyện này khỏi bộ nhớ?'
+            : 'Bạn có chắc chắn muốn xóa ${chapter.title}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Hủy'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              if (chapter == null) {
+                _deleteStory();
+              } else {
+                _deleteChapter(chapter);
+              }
+            },
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red,
+            ),
+            child: const Text('Xóa'),
+          ),
+        ],
       ),
     );
   }
@@ -207,16 +359,15 @@ class _DownloadScreenState extends State<DownloadScreen> {
         final chapter = widget.chapters[index];
         final progress = downloadProgress[chapter.chapter_id] ?? 0.0;
         final isDownloaded = progress == 1.0;
-
         return InkWell(
           onTap: isDownloading ? null : () => toggleChapter(chapter.chapter_id),
+          onLongPress: isDownloaded
+              ? () => _showDeleteConfirmation(context, chapter: chapter)
+              : null,
           child: Container(
             decoration: BoxDecoration(
               color: selectedChapters.contains(chapter.chapter_id)
-                  ? Theme
-                  .of(context)
-                  .primaryColor
-                  .withOpacity(0.8)
+                  ? Theme.of(context).primaryColor.withOpacity(0.8)
                   : Colors.grey[800],
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
@@ -249,13 +400,33 @@ class _DownloadScreenState extends State<DownloadScreen> {
                   ],
                 ),
                 if (isDownloaded)
-                  const Positioned(
+                  Positioned(
                     right: 4,
                     top: 4,
-                    child: Icon(
-                      Icons.check_circle,
-                      color: Colors.green,
-                      size: 16,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(
+                            Icons.delete_outline,
+                            size: 16,
+                            color: Colors.red,
+                          ),
+                          onPressed: () => _showDeleteConfirmation(
+                            context,
+                            chapter: chapter,
+                          ),
+                          constraints: const BoxConstraints(),
+                          padding: EdgeInsets.zero,
+                          tooltip: 'Xóa chương',
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(
+                          Icons.check_circle,
+                          color: Colors.green,
+                          size: 16,
+                        ),
+                      ],
                     ),
                   ),
                 if (progress > 0 && !isDownloaded)
@@ -299,10 +470,9 @@ class _DownloadScreenState extends State<DownloadScreen> {
                 TextButton.icon(
                   onPressed: isDownloading
                       ? null
-                      : () =>
-                      toggleSelectAll(
-                        selectedChapters.length != totalChapters,
-                      ),
+                      : () => toggleSelectAll(
+                            selectedChapters.length != totalChapters,
+                          ),
                   icon: Icon(
                     selectedChapters.length == totalChapters
                         ? Icons.deselect
@@ -323,15 +493,10 @@ class _DownloadScreenState extends State<DownloadScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Theme
-                  .of(context)
-                  .primaryColor
-                  .withOpacity(0.1),
+              color: Theme.of(context).primaryColor.withOpacity(0.1),
               border: Border(
                 top: BorderSide(
-                  color: Theme
-                      .of(context)
-                      .dividerColor,
+                  color: Theme.of(context).dividerColor,
                 ),
               ),
             ),
@@ -345,19 +510,17 @@ class _DownloadScreenState extends State<DownloadScreen> {
                     ),
                     icon: isDownloading
                         ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
                         : const Icon(Icons.download),
                     label: Text(
                       isDownloading
-                          ? "Đang tải ${downloadProgress.values
-                          .where((v) => v == 1.0)
-                          .length}/${selectedChapters.length} chương..."
+                          ? "Đang tải ${downloadProgress.values.where((v) => v == 1.0).length}/${selectedChapters.length} chương..."
                           : "Tải ${selectedChapters.length} chương đã chọn",
                     ),
                   ),

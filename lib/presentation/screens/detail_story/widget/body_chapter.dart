@@ -30,7 +30,6 @@ class _BodyChapterState extends State<BodyChapter> {
       separatorBuilder: (context, index) => const SizedBox(height: 20),
       itemBuilder: (context, index) {
         final chapter = widget.chapters[index];
-
         return GestureDetector(
           onTap: () {
             historyService.postHistory(widget.story_id, chapter.chapter_id);

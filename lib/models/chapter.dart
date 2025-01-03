@@ -11,6 +11,7 @@ class Chapter {
     required this.created_at,
   });
 
+  // Tạo đối tượng Chapter từ JSON
   factory Chapter.fromJson(Map<String, dynamic> json) {
     return Chapter(
       title: json['title'] ?? '',
@@ -20,5 +21,15 @@ class Chapter {
           ? DateTime.parse(json['created_at'])
           : DateTime.now(),
     );
+  }
+
+  // Chuyển Chapter thành JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'title': title,
+      'id': chapter_id,
+      'views': views,
+      'created_at': created_at.toIso8601String(),
+    };
   }
 }

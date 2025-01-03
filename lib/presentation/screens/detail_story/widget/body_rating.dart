@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:story/presentation/screens/detail_story/widget/Ratings_widget.dart';
 
+import '../../../../core/services/provider/auth_provider_check.dart';
 import '../../../../core/services/rating_service.dart';
 import '../../../../models/ratings.dart';
 import 'RatingBottomSheet.dart';
@@ -22,10 +24,18 @@ class _BodyRatingState extends State<BodyRating> {
   void initState() {
     super.initState();
     _futureRatings = _ratingService.fetchRatings(widget.story_id);
+    _refreshRatings();
+  }
+
+  void _refreshRatings() {
+    setState(() {
+      _futureRatings = _ratingService.fetchRatings(widget.story_id);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProviderCheck>(context, listen: false);
     return Stack(
       children: [
         // Main content wrapped in a Container for proper constraints
@@ -94,7 +104,11 @@ class _BodyRatingState extends State<BodyRating> {
                 itemBuilder: (context, index) {
                   return RatingsWidget(
                     story_id: widget.story_id,
-                    ratings: ratings[index], // Pass a single rating object
+                    ratings: ratings[index],
+                    isMyRating:
+                        authProvider.currentUser?.id == ratings[0].user[0].id,
+                    onRatingDeleted:
+                        _refreshRatings, // Pass a single rating object
                   );
                 },
               );

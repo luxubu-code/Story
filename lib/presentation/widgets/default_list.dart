@@ -20,43 +20,55 @@ class DefaultList extends StatefulWidget {
 class _DefaultListState extends State<DefaultList> {
   bool isExists = false;
   final FavouriteService favouriteService = FavouriteService();
+  late List<bool> favourites;
 
   //late Future<String?> token;
   @override
   void initState() {
     super.initState();
-    _checkIfStoryIsFavourite();
+    favourites = List.generate(widget.stories.length, (_) => false);
+    _checkFavourites();
   }
 
-  @override
-  void dispose() {
-    super.dispose();
+  void toDetailStory(id) {
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => DetailStoryScreen(
+            story_id: id,
+            onShowComments: () {},
+          ),
+        ));
   }
 
-  Future<void> _checkIfStoryIsFavourite() async {
-    bool isFavourite = await favouriteService
-        .checkStoriesFavourite(widget.stories[0].story_id);
-    setState(() {
-      isExists = isFavourite;
-    }); // Trigger a rebuild to reflect the new value of isExists
+  Future<void> _checkFavourites() async {
+    for (int i = 0; i < widget.stories.length; i++) {
+      final isFavourite = await favouriteService
+          .checkStoriesFavourite(widget.stories[i].story_id);
+      if (mounted) {
+        setState(() {
+          favourites[i] = isFavourite;
+        });
+      }
+    }
   }
 
-  void _toggleFavourite() async {
+  Future<void> _toggleFavourite(int index) async {
     try {
-      bool success = isExists
-          ? await favouriteService
-              .deleteStoriesFavourite(widget.stories[0].story_id)
-          : await favouriteService
-              .postStoriesFavourite(widget.stories[0].story_id);
+      final storyId = widget.stories[index].story_id;
+      final success = favourites[index]
+          ? await favouriteService.deleteStoriesFavourite(storyId)
+          : await favouriteService.postStoriesFavourite(storyId);
 
       if (success) {
         setState(() {
-          isExists = !isExists;
+          favourites[index] = !favourites[index];
         });
-        _showSnackBar(
-            isExists ? 'Đã thêm vào yêu thích' : 'Đã xóa khỏi yêu thích');
+        _showSnackBar(favourites[index]
+            ? 'Đã thêm vào yêu thích'
+            : 'Đã xóa khỏi yêu thích');
       } else {
-        _showSnackBar(isExists
+        _showSnackBar(favourites[index]
             ? 'Xóa khỏi yêu thích thất bại'
             : 'Thêm vào yêu thích thất bại');
       }
@@ -200,9 +212,15 @@ class _DefaultListState extends State<DefaultList> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Icon(Icons.favorite,
+                    GestureDetector(
+                      onTap: () => _toggleFavourite(index),
+                      child: Icon(
+                        Icons.favorite,
                         size: 18,
-                        color: isExists ? Colors.red : Colors.grey[400]),
+                        color:
+                            favourites[index] ? Colors.red : Colors.grey[400],
+                      ),
+                    ),
                   ],
                 ),
               ),

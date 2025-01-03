@@ -2,11 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:story/core/constants/AppColors.dart';
+import 'package:story/core/utils/navigation_utils.dart';
 import 'package:story/presentation/screens/detail_story/widget/body_chapter.dart';
 import 'package:story/presentation/screens/detail_story/widget/body_rating.dart';
 
 import '../../../core/services/story_service.dart';
 import '../../../models/story.dart';
+import '../chapter/chapter_screen.dart';
 import 'widget/avatar_detail_story.dart';
 import 'widget/body_detail.dart';
 
@@ -150,7 +152,14 @@ class _DetailStoryScreenState extends State<DetailStoryScreen>
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      onPressed: () {},
+                      onPressed: () => NavigationUtils.navigateTo(
+                        context,
+                        ChapterScreen(
+                          chapter_id: story.chapters[0].chapter_id,
+                          chapters: story.chapters,
+                          story_id: story.story_id,
+                        ),
+                      ),
                       child: Text(
                         'Đọc truyện',
                         style: TextStyle(

@@ -6,8 +6,9 @@ import '../../../../core/services/provider/auth_provider_check.dart';
 class UserWidget extends StatelessWidget {
   final String? avataUrl;
   final String? name;
+  final bool isVip;
 
-  const UserWidget({super.key, this.avataUrl, this.name});
+  const UserWidget({super.key, this.avataUrl, this.name, required this.isVip});
 
   @override
   Widget build(BuildContext context) {
@@ -40,21 +41,22 @@ class UserWidget extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 8),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.pink,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    'VIP',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                if (isVip)
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.pink,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      'VIP',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
           ],

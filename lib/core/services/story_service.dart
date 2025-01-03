@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
+import 'package:story/core/services/ApiHelper.dart';
 import 'package:story/core/services/cache_manager.dart';
 
 import '../../models/story.dart';
@@ -10,6 +11,42 @@ import '../../routes/api_endpoints.dart';
 
 class StoryService {
   final CacheManager _cacheManager = CacheManager();
+
+  // Future<List<Story>> fetchStories() async {
+  //   const String key = 'all_stories';
+  //
+  //   final cacheStoris = CacheManager().getItem<List<Story>>(key);
+  //   if (cacheStoris != null) {
+  //     print('Fetching stories from cache');
+  //     return cacheStoris;
+  //   }
+  //   try {
+  //     final response = await http
+  //         .get(Uri.parse(ApiEndpoints.getStories))
+  //         .timeout(const Duration(seconds: 100));
+  //
+  //     if (response.statusCode == 200) {
+  //       print('Fetching stories from API');
+  //       final List<dynamic> responseData =
+  //           jsonDecode(response.body)['data'] ?? [];
+  //       final stories =
+  //           responseData.map((storyJson) => Story.fromJson(storyJson)).toList();
+  //       _cacheManager.setItem(key, stories,
+  //           duration: const Duration(minutes: 15));
+  //
+  //       return stories;
+  //     } else {
+  //       throw HttpException('Failed to load stories: ${response.reasonPhrase}',
+  //           uri: Uri.parse(ApiEndpoints.getStories));
+  //     }
+  //   } on SocketException {
+  //     throw Exception('No Internet connection');
+  //   } on TimeoutException {
+  //     throw Exception('Connection timeout');
+  //   } catch (e) {
+  //     throw Exception('Unexpected error: $e');
+  //   }
+  // }
 
   Future<List<Story>> fetchStories() async {
     const String key = 'all_stories';
@@ -20,30 +57,15 @@ class StoryService {
       return cacheStoris;
     }
     try {
-      final response = await http
-          .get(Uri.parse(ApiEndpoints.getStories))
-          .timeout(const Duration(seconds: 100));
-
-      if (response.statusCode == 200) {
-        print('Fetching stories from API');
-        final List<dynamic> responseData =
-            jsonDecode(response.body)['data'] ?? [];
-        final stories =
-            responseData.map((storyJson) => Story.fromJson(storyJson)).toList();
-        _cacheManager.setItem(key, stories,
-            duration: const Duration(minutes: 15));
-
-        return stories;
-      } else {
-        throw HttpException('Failed to load stories: ${response.reasonPhrase}',
-            uri: Uri.parse(ApiEndpoints.getStories));
-      }
-    } on SocketException {
-      throw Exception('No Internet connection');
-    } on TimeoutException {
-      throw Exception('Connection timeout');
+      final stories =
+          await ApiHelper.fetchDataStory(url: ApiEndpoints.getStories);
+      _cacheManager.setItem(key, stories,
+          duration: const Duration(minutes: 15));
+      print('Fetching stories from API');
+      return stories;
     } catch (e) {
-      throw Exception('Unexpected error: $e');
+      print('Failed stories from API: $e');
+      throw Exception('Failed to fetch stories');
     }
   }
 

@@ -1,9 +1,11 @@
 class ApiEndpoints {
   // static const String baseUrl = 'http://10.0.2.2:8000';
 
-  static const String baseUrl = 'http://192.168.2.171:8000';
+  // static const String baseUrl = 'http://192.168.2.171:8000';
 
-  // static const String baseUrl = 'http://192.168.120.95:8000';
+  static const String baseUrl = 'http://192.168.5.95:8000';
+
+  // static const String baseUrl = 'http://172.20.7.228:8000';
 
   // static const String baseUrl = 'http://0.0.0.0:8000';
 
@@ -47,6 +49,7 @@ class ApiEndpoints {
   //
   static const String getRatings = '$baseUrl/api/rating/';
   static const String postRatings = '$baseUrl/api/rating';
+  static const String deleteRatings = '$baseUrl/api/rating';
 
   //User
   static const String login = '$baseUrl/api/auth/login';

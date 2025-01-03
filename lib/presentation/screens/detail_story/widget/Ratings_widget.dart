@@ -1,14 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:story/core/services/rating_service.dart';
 import 'package:story/models/ratings.dart';
 
 import '../../../../core/utils/dateTimeFormatUtils.dart';
 
-class RatingsWidget extends StatelessWidget {
+class RatingsWidget extends StatefulWidget {
   final int story_id;
   final Ratings ratings;
+  final bool isMyRating;
+  final VoidCallback onRatingDeleted;
 
   const RatingsWidget(
-      {super.key, required this.story_id, required this.ratings});
+      {super.key,
+      required this.story_id,
+      required this.ratings,
+      required this.isMyRating,
+      required this.onRatingDeleted});
+
+  @override
+  State<RatingsWidget> createState() => _RatingsWidget();
+}
+
+class _RatingsWidget extends State<RatingsWidget> {
+  final RatingService _commentService = RatingService();
 
   @override
   Widget build(BuildContext context) {
@@ -39,8 +53,8 @@ class RatingsWidget extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CircleAvatar(
-                  backgroundImage: ratings.user[0].avatar_url != ''
-                      ? NetworkImage(ratings.user[0].avatar_url)
+                  backgroundImage: widget.ratings.user[0].avatar_url != ''
+                      ? NetworkImage(widget.ratings.user[0].avatar_url)
                       : AssetImage('assets/avatar.png') as ImageProvider,
                   radius: 24,
                 ),
@@ -52,10 +66,10 @@ class RatingsWidget extends StatelessWidget {
                       // Hàng hiển thị số sao
                       Row(
                         children: List.generate(
-                          ratings.rating,
+                          widget.ratings.rating,
                           (index) => Icon(
                             Icons.star,
-                            color: index < ratings.rating
+                            color: index < widget.ratings.rating
                                 ? Colors.yellow
                                 : Colors.white70,
                             size: 16,
@@ -65,7 +79,7 @@ class RatingsWidget extends StatelessWidget {
                       SizedBox(height: 4),
                       // Tên người dùng
                       Text(
-                        ratings.user[0].name,
+                        widget.ratings.user[0].name,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
@@ -75,7 +89,7 @@ class RatingsWidget extends StatelessWidget {
                       SizedBox(height: 4),
                       // Tiêu đề đánh giá
                       Text(
-                        ratings.title,
+                        widget.ratings.title,
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.white,
@@ -84,12 +98,92 @@ class RatingsWidget extends StatelessWidget {
                       ),
                       SizedBox(height: 8),
                       // Thời gian tạo
-                      Text(
-                        time(ratings.created_at),
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.white70,
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            time(widget.ratings.created_at),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.white70,
+                            ),
+                          ),
+                          if (widget.isMyRating)
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                GestureDetector(
+                                  onTap: () async {
+                                    // Hiển thị hộp thoại xác nhận
+                                    bool? confirmDelete =
+                                        await showDialog<bool>(
+                                      context: context,
+                                      builder: (context) => AlertDialog(
+                                        title: Text('Xóa đánh giá'),
+                                        content: Text(
+                                            'Bạn có chắc chắn muốn xóa đánh giá này?'),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.of(context)
+                                                    .pop(false),
+                                            child: Text('Hủy'),
+                                          ),
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.of(context).pop(true),
+                                            child: Text('Xóa'),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                    if (confirmDelete == true) {
+                                      try {
+                                        bool? success =
+                                            await _commentService.deleteRating(
+                                                widget.ratings.user[0].id,
+                                                context);
+                                        if (success) {
+                                          widget.onRatingDeleted();
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                                content:
+                                                    Text('Đã xóa đánh giá')),
+                                          );
+                                        } else {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                                content: Text(
+                                                    'Không thể xóa đánh giá')),
+                                          );
+                                        }
+                                      } catch (e) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                              content:
+                                                  Text('Đã xảy ra lỗi: $e')),
+                                        );
+                                      }
+                                    }
+                                  },
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.delete,
+                                          color: Colors.red, size: 18),
+                                      SizedBox(width: 4),
+                                      Text(
+                                        'Xóa',
+                                        style: TextStyle(color: Colors.red),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                        ],
                       ),
                     ],
                   ),

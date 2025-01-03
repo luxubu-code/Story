@@ -1,3 +1,5 @@
+import 'package:story/models/user_vip_subscription_model.dart';
+
 class UserModel {
   final int id;
   final String name;
@@ -7,6 +9,8 @@ class UserModel {
   final String date_of_birth;
   final String fcmToken;
   final String googleId;
+  final bool isVip;
+  final UserVipSubscriptionModel? currentSubscription;
 
   UserModel({
     required this.id,
@@ -17,6 +21,8 @@ class UserModel {
     required this.date_of_birth,
     required this.fcmToken,
     required this.googleId,
+    required this.isVip,
+    this.currentSubscription,
   });
 
   // Phương thức để chuyển từ JSON thành model UserModel
@@ -32,6 +38,10 @@ class UserModel {
       date_of_birth: json['date_of_birth'] ?? '',
       fcmToken: json['fcm_token'] ?? '',
       googleId: json['google_id'] ?? '',
+      isVip: json['is_vip'] ?? false,
+      currentSubscription: json['current_subscription'] != null
+          ? UserVipSubscriptionModel.fromJson(json['current_subscription'])
+          : null,
     );
   }
 
@@ -45,6 +55,7 @@ class UserModel {
       'created_at': created_at.toIso8601String(),
       'fcm_token': fcmToken,
       'google_id': googleId,
+      'is_vip': isVip,
     };
   }
 }

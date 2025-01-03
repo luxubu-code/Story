@@ -5,7 +5,7 @@ import '../../login/login_screen.dart';
 
 Widget login_widget(BuildContext context) {
   return GestureDetector(
-    onTap: () => NavigationUtils.navigateTo(context, LogginScreen()),
+    onTap: () => NavigationUtils.navigateTo(context, LoginScreen()),
     child: Row(
       children: [
         CircleAvatar(

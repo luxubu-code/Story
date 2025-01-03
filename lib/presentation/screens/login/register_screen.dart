@@ -47,7 +47,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => LogginScreen(),
+            builder: (context) => LoginScreen(),
           ));
     } catch (e) {
       Snack_Bar('Login failed: ${e.toString()}');
@@ -74,7 +74,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   Text(
-                    'SEGGAY',
+                    'STORY',
                     style: Apptextstyles.headline1,
                   ),
                   SizedBox(height: 40),
