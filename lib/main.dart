@@ -84,13 +84,14 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  late int _selectedIndex = 0;
-  late PageController _pageController;
+  late int _selectedIndex;
+  late final PageController _pageController;
 
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(initialPage: widget.initialIndex);
+    _selectedIndex = widget.initialIndex;
+    _pageController = PageController(initialPage: _selectedIndex);
   }
 
   @override
@@ -100,7 +101,12 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _onTap(int index) {
-    _pageController.jumpToPage(index);
+    if (_selectedIndex != index) {
+      setState(() {
+        _selectedIndex = index;
+        _pageController.jumpToPage(index);
+      });
+    }
   }
 
   List<Widget> get _pages => [
@@ -119,11 +125,14 @@ class _MyHomePageState extends State<MyHomePage> {
       body: PageView(
         controller: _pageController,
         onPageChanged: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
+          if (_selectedIndex != index) {
+            setState(() {
+              _selectedIndex = index;
+            });
+          }
         },
         children: _pages,
+        physics: const NeverScrollableScrollPhysics(),
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[

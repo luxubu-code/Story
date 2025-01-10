@@ -103,6 +103,7 @@ class ApiHelper {
           response = await http
               .get(Uri.parse(url), headers: defaultHeaders)
               .timeout(timeout);
+          print(response.body);
           break;
         case 'POST':
           response = await http
@@ -125,7 +126,7 @@ class ApiHelper {
             jsonDecode(response.body)['data'] ?? [];
         final stories =
             responseData.map((storyJson) => Story.fromJson(storyJson)).toList();
-
+        print(response.body);
         return stories;
       } else {
         throw HttpException(

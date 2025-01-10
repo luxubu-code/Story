@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:story/core/services/image_service.dart';
+import 'package:story/core/services/story_service.dart';
 
 import '../../../core/services/history_service.dart';
 import '../../../models/chapter.dart';
@@ -29,12 +30,14 @@ class _ChapterScreenState extends State<ChapterScreen> {
   final ImageService imageService = ImageService();
   late ScrollController _scrollController;
   final HistoryService historyService = HistoryService();
+  final StoryService _storyService = StoryService();
 
   bool _isBottomVisible = true; // Đảm bảo tên biến này đúng
 
   @override
   void initState() {
     super.initState();
+    _storyService.views(widget.chapter_id);
     images = imageService.fetchImage(widget.chapter_id);
     _scrollController = ScrollController();
     _scrollController.addListener(
@@ -97,7 +100,7 @@ class _ChapterScreenState extends State<ChapterScreen> {
                             Navigator.pop(context);
                           },
                           icon: Icon(Icons.arrow_back_sharp)),
-                      title: Text('Example'),
+                      title: Text('Chương'),
                       floating: true,
                       snap: true,
                       shape: StadiumBorder(
@@ -148,7 +151,7 @@ class _ChapterScreenState extends State<ChapterScreen> {
                   children: [
                     _buildBottomBarItem(
                       icon: Icons.arrow_back,
-                      label: 'Previous',
+                      label: 'chương trước',
                       onPressed: () {
                         int currentIndex = widget.chapters.indexWhere(
                             (chapter) =>
@@ -169,11 +172,10 @@ class _ChapterScreenState extends State<ChapterScreen> {
                     ),
                     _buildBottomBarItem(
                       icon: Icons.list_alt_sharp,
-                      label: 'List Chapter',
+                      label: 'danh sách chương',
                       onPressed: () {
                         historyService.postHistory(
                             widget.story_id, widget.chapter_id);
-
                         showModalBottomSheet(
                           context: context,
                           backgroundColor: Colors.transparent,
@@ -189,12 +191,12 @@ class _ChapterScreenState extends State<ChapterScreen> {
                     ),
                     _buildBottomBarItem(
                       icon: Icons.comment,
-                      label: 'Comment',
+                      label: 'bình luận',
                       onPressed: showComments,
                     ),
                     _buildBottomBarItem(
                       icon: Icons.arrow_forward,
-                      label: 'Next',
+                      label: 'chương sau',
                       onPressed: () {
                         int currentIndex = widget.chapters.indexWhere(
                             (chapter) =>

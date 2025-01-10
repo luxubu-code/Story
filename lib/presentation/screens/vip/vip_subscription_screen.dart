@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:story/presentation/screens/vip/payment_web_view.dart';
 import 'package:story/presentation/screens/vip/widget/vip_status_widget.dart';
 
+import '../../../core/services/provider/user_provider.dart';
 import '../../../core/services/vip_service.dart';
 
 class VipSubscriptionPage extends StatefulWidget {
@@ -21,7 +23,7 @@ class _VipSubscriptionPageState extends State<VipSubscriptionPage> {
   void initState() {
     super.initState();
     fetchPackages();
-    _getCurrentSubscription();
+    // _getCurrentSubscription();
   }
 
   Future<void> fetchPackages() async {
@@ -72,6 +74,8 @@ class _VipSubscriptionPageState extends State<VipSubscriptionPage> {
             backgroundColor: Colors.green,
           ),
         );
+        final userProvider = Provider.of<UserProvider>(context, listen: false);
+        userProvider.refreshUser();
         await fetchPackages();
       }
     } catch (e) {
@@ -85,113 +89,18 @@ class _VipSubscriptionPageState extends State<VipSubscriptionPage> {
     }
   }
 
-  // Future<void> fetchPackages() async {
-  //   final token = await SecureTokenStorage.getToken();
+  // Future<void> _getCurrentSubscription() async {
   //   try {
-  //     final response = await dio.get(
-  //       '${ApiEndpoints.baseUrl}/api/vip/packages',
-  //       options: Options(
-  //         headers: {
-  //           'Authorization': 'Bearer $token',
-  //         },
-  //       ),
-  //     );
-  //     setState(() {
-  //       packages = response.data['packages'];
-  //       isLoading = false;
-  //     });
-  //   } catch (e) {
-  //     setState(() {
-  //       isLoading = false;
-  //     });
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(content: Text('Không thể tải danh sách gói VIP')),
-  //     );
-  //   }
-  // }
-  //
-  // Future<void> _handleSubscribe(BuildContext context, int packageId) async {
-  //   try {
-  //     print('Bắt đầu quá trình đăng ký gói VIP...');
-  //     showDialog(
-  //       context: context,
-  //       barrierDismissible: false,
-  //       builder: (context) => Center(child: CircularProgressIndicator()),
-  //     );
-  //
-  //     final token = await SecureTokenStorage.getToken();
-  //     print('Token đã được lấy: ${token?.substring(0, 10)}...');
-  //
-  //     final response = await dio.post(
-  //       '${ApiEndpoints.baseUrl}/api/vip/subscribe/$packageId',
-  //       options: Options(
-  //         headers: {
-  //           'Authorization': 'Bearer $token',
-  //         },
-  //       ),
-  //     );
-  //
-  //     Navigator.pop(context); // Đóng dialog loading
-  //
-  //     String paymentUrl = response.data['payment_url'];
-  //     print('URL thanh toán gốc: $paymentUrl');
-  //
-  //     // Giải mã URL
-  //     paymentUrl = Uri.decodeFull(Uri.decodeFull(paymentUrl));
-  //     print('URL thanh toán sau khi giải mã: $paymentUrl');
-  //
-  //     if (paymentUrl.isNotEmpty && Uri.parse(paymentUrl).isAbsolute) {
-  //       try {
-  //         final result = await Navigator.push(
-  //           context,
-  //           MaterialPageRoute(
-  //             builder: (context) => PaymentWebView(paymentUrl: paymentUrl),
-  //           ),
-  //         );
-  //
-  //         if (result == true) {
-  //           ScaffoldMessenger.of(context).showSnackBar(
-  //             SnackBar(
-  //               content: Text('Thanh toán thành công'),
-  //               backgroundColor: Colors.green,
-  //             ),
-  //           );
-  //           await fetchPackages();
-  //         }
-  //       } catch (webViewError) {
-  //         print('Lỗi khi mở WebView: $webViewError');
-  //         ScaffoldMessenger.of(context).showSnackBar(
-  //           SnackBar(
-  //             content: Text('Thanh toán không thành công'),
-  //             backgroundColor: Colors.red,
-  //           ),
-  //         );
-  //       }
-  //     } else {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         SnackBar(content: Text('URL thanh toán không hợp lệ')),
-  //       );
+  //     final userData = await _vipService.getCurrentUser();
+  //     if (userData['is_vip'] && userData['current_subscription'] != null) {
+  //       setState(() {
+  //         currentSubscription = userData['current_subscription'];
+  //       });
   //     }
   //   } catch (e) {
-  //     print('Lỗi trong quá trình xử lý: $e');
-  //     Navigator.pop(context);
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(content: Text('Có lỗi xảy ra: ${e.toString()}')),
-  //     );
+  //     print('Error fetching current subscription: $e');
   //   }
   // }
-  Future<void> _getCurrentSubscription() async {
-    try {
-      final userData = await _vipService.getCurrentUser();
-      if (userData['is_vip'] && userData['current_subscription'] != null) {
-        setState(() {
-          currentSubscription = userData['current_subscription'];
-        });
-      }
-    } catch (e) {
-      print('Error fetching current subscription: $e');
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -200,22 +109,17 @@ class _VipSubscriptionPageState extends State<VipSubscriptionPage> {
         title: Text('Đăng ký VIP'),
         elevation: 0,
       ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          await Future.wait([
-            fetchPackages(),
-            _getCurrentSubscription(),
-          ]);
-        },
-        child: SingleChildScrollView(
-          physics: AlwaysScrollableScrollPhysics(),
-          child: Column(
+      body: SingleChildScrollView(
+        physics: AlwaysScrollableScrollPhysics(),
+        child: Consumer<UserProvider>(builder: (context, userProvider, child) {
+          final user = userProvider.user;
+          return Column(
             children: [
-              if (currentSubscription != null) ...[
+              if (user != null && user.currentSubscription != null) ...[
                 Padding(
                   padding: EdgeInsets.all(16),
                   child: VipStatusWidget(
-                    subscription: currentSubscription!,
+                    userVipSubscriptionModel: user.currentSubscription!,
                   ),
                 ),
                 Divider(height: 1),
@@ -267,8 +171,8 @@ class _VipSubscriptionPageState extends State<VipSubscriptionPage> {
                   },
                 ),
             ],
-          ),
-        ),
+          );
+        }),
       ),
     );
   }

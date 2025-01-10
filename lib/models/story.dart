@@ -13,6 +13,7 @@ class Story {
   final int status;
   final int totalChapter;
   final int favourite;
+  final bool is_vip;
   final String image_path;
   final DateTime created_at;
   final DateTime read_at;
@@ -32,6 +33,7 @@ class Story {
       required this.created_at,
       required this.description,
       required this.views,
+      required this.is_vip,
       required this.status,
       required this.favourite,
       required this.image_path,
@@ -50,7 +52,8 @@ class Story {
       title: json['title'] ?? '',
       views: json['views'] ?? 0,
       status: json['status'] ?? 1,
-      favourite: json['favourite'] ?? 0,
+      favourite: json['favouriteCount'] ?? 0,
+      is_vip: json['is_vip'] ?? false,
       totalChapter: json['totalChapter'] ?? 0,
       image_path: json['image_path'] ?? '',
       updated_at: json['updated_at'] != null

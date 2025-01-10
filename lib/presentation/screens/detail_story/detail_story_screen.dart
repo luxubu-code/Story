@@ -79,6 +79,7 @@ class _DetailStoryScreenState extends State<DetailStoryScreen>
                     story_id: story.story_id,
                     chapters: story.chapters,
                     story: story,
+                    is_vip: story.is_vip,
                   ),
                   Container(
                     decoration: BoxDecoration(

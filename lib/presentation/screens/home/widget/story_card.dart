@@ -123,9 +123,9 @@ class StoryCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (story.title?.isNotEmpty ?? false) ...[
+        if (story.title.isNotEmpty ?? false) ...[
           Text(
-            story.title!,
+            story.title,
             maxLines: 2,
             style: const TextStyle(
               color: Colors.white,
@@ -139,7 +139,7 @@ class StoryCard extends StatelessWidget {
         ],
         if (story.description?.isNotEmpty ?? false) ...[
           const Text(
-            'Description',
+            'Mô tả',
             style: TextStyle(
               color: Colors.white70,
               fontSize: 12,

@@ -80,7 +80,7 @@ class _BodyDetailState extends State<BodyDetail> {
                   padding: const EdgeInsets.all(8.0),
                   child: RichText(
                     text: TextSpan(
-                      text: 'Status : ', // Phần này không đổi màu
+                      text: 'Trạng thái : ', // Phần này không đổi màu
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.normal,

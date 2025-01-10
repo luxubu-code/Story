@@ -5,7 +5,7 @@ import 'package:story/routes/api_endpoints.dart';
 import '../../../models/vip_subscription.dart';
 import '../../../storage/secure_tokenstorage.dart';
 
-// Custom exception for subscription-related errors
+// Ngoại lệ tùy chỉnh cho các lỗi liên quan đến đăng ký
 class SubscriptionException implements Exception {
   final String message;
   final int? statusCode;
@@ -19,29 +19,33 @@ class SubscriptionException implements Exception {
 class SubscriptionProvider with ChangeNotifier {
   final Dio dio;
 
-  // Private state variables with clearer naming
+  // Các biến trạng thái riêng tư với tên rõ ràng hơn
   List<VipSubscription> _subscriptionHistory = [];
   VipSubscription? _currentActiveSubscription;
   bool _isLoadingData = false;
   String? _errorMessage;
 
-  // Add state for tracking API request status
+  // Thêm trạng thái để theo dõi trạng thái yêu cầu API
   bool _isRefreshing = false;
   DateTime? _lastFetchTime;
 
   SubscriptionProvider({required this.dio});
 
-  // Getters with validation and immutability
+  // Các getter với xác thực và tính bất biến
   List<VipSubscription> get subscriptionHistory =>
       List.unmodifiable(_subscriptionHistory);
+
   VipSubscription? get activeSubscription => _currentActiveSubscription;
+
   bool get isLoading => _isLoadingData;
+
   String? get error => _errorMessage;
+
   bool get hasActiveSubscription => _currentActiveSubscription != null;
 
-  // Enhanced fetch subscription history with retry logic and caching
+  // Cải thiện việc lấy lịch sử đăng ký với logic thử lại và bộ nhớ đệm
   Future<void> fetchSubscriptions({bool forceRefresh = false}) async {
-    // Prevent duplicate calls unless force refresh is requested
+    // Ngăn chặn các cuộc gọi trùng lặp trừ khi yêu cầu làm mới
     if (_isLoadingData && !forceRefresh) return;
     if (_isRefreshing) return;
 
@@ -54,7 +58,7 @@ class SubscriptionProvider with ChangeNotifier {
         options: Options(
           headers: await _getAuthHeaders(),
           validateStatus: (status) => status! < 500,
-          // Add reasonable timeouts
+          // Thêm thời gian chờ hợp lý
           sendTimeout: const Duration(seconds: 10),
           receiveTimeout: const Duration(seconds: 10),
         ),
@@ -67,18 +71,20 @@ class SubscriptionProvider with ChangeNotifier {
               .map((json) => VipSubscription.fromJson(json))
               .toList();
 
-          // Sort subscriptions by start date (most recent first)
+          // Sắp xếp đăng ký theo ngày bắt đầu (gần đây nhất trước)
           _subscriptionHistory
               .sort((a, b) => b.startDate.compareTo(a.startDate));
 
           _errorMessage = null;
           _lastFetchTime = DateTime.now();
+          notifyListeners();
         } else {
-          throw SubscriptionException('Invalid response format from server');
+          throw SubscriptionException(
+              'Định dạng phản hồi từ máy chủ không hợp lệ');
         }
       } else {
         throw SubscriptionException(
-          response.data['message'] ?? 'Failed to load subscription history',
+          response.data['message'] ?? 'Không thể tải lịch sử đăng ký',
           statusCode: response.statusCode,
         );
       }
@@ -86,8 +92,8 @@ class SubscriptionProvider with ChangeNotifier {
       _handleDioError(e);
       rethrow;
     } catch (e) {
-      _errorMessage = 'Unexpected error occurred while fetching subscriptions';
-      debugPrint('Subscription fetch error: $e');
+      _errorMessage = 'Đã xảy ra lỗi không mong muốn khi tải lịch sử đăng ký';
+      debugPrint('Lỗi tải đăng ký: $e');
       rethrow;
     } finally {
       _setLoading(false);
@@ -95,7 +101,7 @@ class SubscriptionProvider with ChangeNotifier {
     }
   }
 
-  // Enhanced active subscription fetch with better error handling
+  // Cải thiện việc lấy đăng ký đang hoạt động với xử lý lỗi tốt hơn
   Future<void> fetchActiveSubscription() async {
     try {
       final response = await dio.get(
@@ -114,12 +120,13 @@ class SubscriptionProvider with ChangeNotifier {
           _currentActiveSubscription = VipSubscription.fromJson(data['data']);
           _errorMessage = null;
         } else {
-          // No active subscription is a valid state
+          // Không có đăng ký đang hoạt động là trạng thái hợp lệ
           _currentActiveSubscription = null;
         }
       } else {
         throw SubscriptionException(
-          response.data['message'] ?? 'Failed to fetch active subscription',
+          response.data['message'] ??
+              'Không thể lấy thông tin đăng ký đang hoạt động',
           statusCode: response.statusCode,
         );
       }
@@ -128,37 +135,37 @@ class SubscriptionProvider with ChangeNotifier {
       _currentActiveSubscription = null;
     } catch (e) {
       _errorMessage =
-          'Unexpected error occurred while fetching active subscription';
-      debugPrint('Active subscription fetch error: $e');
+          'Đã xảy ra lỗi không mong muốn khi lấy thông tin đăng ký đang hoạt động';
+      debugPrint('Lỗi lấy đăng ký đang hoạt động: $e');
       _currentActiveSubscription = null;
     } finally {
       notifyListeners();
     }
   }
 
-  // Enhanced error handling with more specific error messages
+  // Cải thiện xử lý lỗi với thông báo lỗi cụ thể hơn
   void _handleDioError(DioException e) {
     _errorMessage = switch (e.type) {
       DioExceptionType.connectionTimeout ||
       DioExceptionType.receiveTimeout =>
-        'Connection timeout. Please check your internet connection.',
+        'Hết thời gian kết nối. Vui lòng kiểm tra kết nối internet của bạn.',
       DioExceptionType.connectionError =>
-        'Unable to connect to server. Please check your internet connection.',
+        'Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối internet của bạn.',
       _ when e.response?.statusCode == 401 =>
-        'Session expired. Please log in again.',
+        'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
       _ when e.response?.statusCode == 403 =>
-        'Access denied. Please check your subscription status.',
+        'Truy cập bị từ chối. Vui lòng kiểm tra trạng thái đăng ký của bạn.',
       _ when e.response?.data?['message'] != null =>
         e.response!.data['message'],
-      _ => 'An error occurred. Please try again later.',
+      _ => 'Đã xảy ra lỗi. Vui lòng thử lại sau.',
     };
   }
 
-  // Secure header generation with token validation
+  // Tạo header bảo mật với xác thực token
   Future<Map<String, String>> _getAuthHeaders() async {
     final token = await SecureTokenStorage.getToken();
     if (token == null || token.isEmpty) {
-      throw SubscriptionException('Authentication token not found');
+      throw SubscriptionException('Không tìm thấy token xác thực');
     }
 
     return {
@@ -173,20 +180,20 @@ class SubscriptionProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // Additional utility methods
+  // Các phương thức tiện ích bổ sung
   void clearError() {
     _errorMessage = null;
     notifyListeners();
   }
 
-  // Method to check if data needs refresh
+  // Phương thức kiểm tra xem dữ liệu có cần làm mới không
   bool get needsRefresh {
     if (_lastFetchTime == null) return true;
     return DateTime.now().difference(_lastFetchTime!) >
         const Duration(minutes: 5);
   }
 
-  // Cleanup method
+  // Phương thức dọn dẹp
   void dispose() {
     _subscriptionHistory.clear();
     _currentActiveSubscription = null;

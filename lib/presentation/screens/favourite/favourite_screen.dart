@@ -92,9 +92,7 @@ class _FavouritePageState extends State<FavouritePage>
                     futureStories: _futureStories,
                     storyBuilder: (stories) =>
                         ListStoryBuilder(stories: stories, context: context)),
-                LoginContentStoriesBuilder(
-                    futureStories: _futureStories,
-                    storyBuilder: (stories) => DownloadedStoriesScreen()),
+                DownloadedStoriesScreen(),
                 // LoginContentStoriesBuilder(
                 //     futureStories: _futureStories,
                 //     storyBuilder: (stories) =>

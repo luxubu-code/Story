@@ -1,22 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../models/user_vip_subscription_model.dart';
+
 class VipStatusWidget extends StatelessWidget {
-  final Map<String, dynamic> subscription;
+  final UserVipSubscriptionModel userVipSubscriptionModel;
 
   const VipStatusWidget({
     Key? key,
-    required this.subscription,
+    required this.userVipSubscriptionModel,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final status = subscription['status'];
-    final dates = subscription['dates'];
+    final status = userVipSubscriptionModel.status;
+    final dates = userVipSubscriptionModel.dates;
 
     final dateFormat = DateFormat('dd/MM/yyyy HH:mm');
-    final startDate = DateTime.parse(dates['start_date']);
-    final endDate = DateTime.parse(dates['end_date']);
+    final startDate = DateTime.parse(dates.startDate.toString());
+    final endDate = DateTime.parse(dates.endDate.toString());
 
     return Container(
       padding: EdgeInsets.all(16),
@@ -54,7 +56,7 @@ class VipStatusWidget extends StatelessWidget {
           SizedBox(height: 4),
           _buildInfoRow(
             'Số ngày còn lại:',
-            '${status['days_remaining'].toStringAsFixed(1)} ngày',
+            '${status.daysRemaining.toStringAsFixed(1)} ngày',
           ),
         ],
       ),

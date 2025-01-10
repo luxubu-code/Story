@@ -55,7 +55,7 @@ dependencies:
   webview_flutter: ^4.10.0
   font_awesome_flutter: ^10.8.0
   photo_view: ^0.15.0
-
+  web_socket_channel: ^3.0.1
 
 
 

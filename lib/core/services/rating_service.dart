@@ -58,8 +58,8 @@ class RatingService {
         final responseData = jsonDecode(response.body);
         return responseData['status'] == 'success';
       } else {
-        throw HttpException(
-            'Request failed with status: ${response.statusCode}');
+        print(response.body);
+        throw HttpException('Bạn đã đánh giá truyện này');
       }
     } on SocketException {
       throw Exception('No Internet connection');

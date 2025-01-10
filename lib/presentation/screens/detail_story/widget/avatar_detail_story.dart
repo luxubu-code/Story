@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:story/core/constants/AppColors.dart';
 import 'package:story/core/services/favourite_service.dart';
 import 'package:story/core/utils/navigation_utils.dart';
 import 'package:story/presentation/screens/download/download_screen.dart';
@@ -16,6 +17,7 @@ class AvatarDetailStory extends StatefulWidget {
   final String title;
   final String author;
   final int story_id;
+  final bool is_vip;
 
   const AvatarDetailStory(
       {super.key,
@@ -24,7 +26,8 @@ class AvatarDetailStory extends StatefulWidget {
       required this.author,
       required this.story_id,
       required this.chapters,
-      required this.story});
+      required this.story,
+      this.is_vip = false});
 
   @override
   State<AvatarDetailStory> createState() => _AvatarDetailStoryState();
@@ -131,13 +134,36 @@ class _AvatarDetailStoryState extends State<AvatarDetailStory> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      widget.title,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Row(
+                      children: [
+                        Text(
+                          widget.title,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        if (widget.is_vip)
+                          Container(
+                            margin: const EdgeInsets.only(left: 8),
+                            // Tạo khoảng cách với tiêu đề
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.amber,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Text(
+                              'VIP',
+                              style: TextStyle(
+                                color: AppColors.berryPurple,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                     SizedBox(height: 8),
                     Text(

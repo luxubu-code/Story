@@ -1,9 +1,9 @@
 class ApiEndpoints {
   // static const String baseUrl = 'http://10.0.2.2:8000';
 
-  // static const String baseUrl = 'http://192.168.2.171:8000';
+  static const String baseUrl = 'http://192.168.2.171:8000';
 
-  static const String baseUrl = 'http://192.168.5.95:8000';
+  // static const String baseUrl = 'http://192.168.5.95:8000';
 
   // static const String baseUrl = 'http://172.20.7.228:8000';
 
@@ -27,6 +27,7 @@ class ApiEndpoints {
 
   //Story
   static const String getStories = '$baseUrl/api/stories';
+  static const String views = '$baseUrl/api/stories/view/';
 
   //Comment
   static const String comment = '$baseUrl/api/comment';

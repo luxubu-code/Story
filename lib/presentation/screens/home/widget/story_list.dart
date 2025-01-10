@@ -8,11 +8,12 @@ import 'story_card_list.dart';
 class StoryList extends StatelessWidget {
   final List<Story> stories;
 
-  const StoryList({Key? key, required this.stories}) : super(key: key);
+  const StoryList({super.key, required this.stories});
 
   @override
   Widget build(BuildContext context) {
     return GridView.builder(
+      physics: NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
         childAspectRatio: 1,
@@ -21,18 +22,21 @@ class StoryList extends StatelessWidget {
       ),
       itemCount: stories.length,
       itemBuilder: (BuildContext context, int index) {
+        final story = stories[index];
         return GestureDetector(
           onTap: () {
             NavigationUtils.navigateTo(
                 context,
                 DetailStoryScreen(
-                  story_id: stories[index].story_id,
+                  story_id: story.story_id,
                   onShowComments: () {},
                 ));
           },
           child: StoryCardList(
-              image_path: stories[index].image_path,
-              title: stories[index].title),
+            image_path: story.image_path,
+            title: story.title,
+            is_vip: story.is_vip,
+          ),
         );
       },
     );
