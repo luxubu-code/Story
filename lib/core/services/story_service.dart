@@ -97,6 +97,7 @@ class StoryService {
       if (response.statusCode == 200) {
         final dynamic responseData = jsonDecode(response.body);
         if (responseData['status'] == 'success') {
+          print(responseData['data']);
           return Story.fromJson(responseData['data']);
         } else {
           throw Exception('Failed to load story: ${responseData['message']}');

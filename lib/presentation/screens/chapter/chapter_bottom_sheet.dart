@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:story/core/constants/AppColors.dart';
 
 import '../../../../models/chapter.dart';
+import '../../../core/services/history_service.dart';
+import '../../../core/services/provider/auth_provider_check.dart';
+import '../../../core/utils/navigation_utils.dart';
+import '../login/login_screen.dart';
+import '../vip/vip_subscription_screen.dart';
 import 'chapter_screen.dart';
 
 class ChapterBottomSheet extends StatelessWidget {
@@ -18,6 +24,57 @@ class ChapterBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    void handleChapterNavigation(Chapter chapter) {
+      final authProvider =
+          Provider.of<AuthProviderCheck>(context, listen: false);
+
+      // Xử lý logic cho chapter VIP
+      if (chapter.is_vip) {
+        if (!authProvider.isLoggedIn) {
+          NavigationUtils.navigateTo(context, LoginScreen());
+          return;
+        }
+
+        if (!authProvider.currentUser!.isVip) {
+          NavigationUtils.navigateTo(context, VipSubscriptionPage());
+          return;
+        }
+      }
+
+      // Ghi lại lịch sử nếu user đã đăng nhập
+      if (authProvider.isLoggedIn) {
+        HistoryService().postHistory(storyId, chapter.chapter_id);
+      }
+      Navigator.pop(context);
+      // Chuyển đến chapter mới
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ChapterScreen(
+            chapter_id: chapter.chapter_id,
+            chapters: chapters,
+            story_id: storyId,
+          ),
+        ),
+      );
+      // // Chuyển đến chapter mới và xóa hết lịch sử điều hướng đến chapter cũ
+      // Navigator.pushAndRemoveUntil(
+      //   context,
+      //   MaterialPageRoute(
+      //     builder: (context) => ChapterScreen(
+      //       chapter_id: chapter.chapter_id,
+      //       chapters: chapters,
+      //       story_id: storyId,
+      //     ),
+      //   ),
+      //       (route) {
+      //     // Kiểm tra nếu route hiện tại là ChapterScreen
+      //     return route.settings.name != null &&
+      //         !route.settings.name!.startsWith('/chapter');
+      //   },
+      // );
+    }
+
     return Container(
       decoration: BoxDecoration(
         borderRadius: const BorderRadius.only(
@@ -89,6 +146,9 @@ class ChapterBottomSheet extends StatelessWidget {
                       chapters[index].chapter_id == currentChapter;
 
                   return ListTile(
+                    hoverColor: Colors.white.withOpacity(0.1),
+                    selectedTileColor: AppColors.purple.withOpacity(0.2),
+                    selected: isCurrentChapter,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                     leading: Container(
                       decoration: BoxDecoration(
@@ -118,6 +178,15 @@ class ChapterBottomSheet extends StatelessWidget {
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        if (chapterItem.is_vip)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: Icon(
+                              Icons.star,
+                              color: Colors.amber,
+                              size: 20,
+                            ),
+                          ),
                         Icon(
                           Icons.remove_red_eye_outlined,
                           color: isCurrentChapter
@@ -137,18 +206,7 @@ class ChapterBottomSheet extends StatelessWidget {
                         ),
                       ],
                     ),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ChapterScreen(
-                            chapter_id: chapterItem.chapter_id,
-                            chapters: chapters,
-                            story_id: storyId,
-                          ),
-                        ),
-                      );
-                    },
+                    onTap: () => handleChapterNavigation(chapterItem),
                   );
                 },
               ),

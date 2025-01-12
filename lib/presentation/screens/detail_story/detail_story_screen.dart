@@ -16,8 +16,11 @@ class DetailStoryScreen extends StatefulWidget {
   final int story_id;
   final VoidCallback onShowComments;
 
-  const DetailStoryScreen(
-      {super.key, required this.story_id, required this.onShowComments});
+  const DetailStoryScreen({
+    super.key,
+    required this.story_id,
+    required this.onShowComments,
+  });
 
   @override
   _DetailStoryScreenState createState() => _DetailStoryScreenState();
@@ -25,14 +28,13 @@ class DetailStoryScreen extends StatefulWidget {
 
 class _DetailStoryScreenState extends State<DetailStoryScreen>
     with SingleTickerProviderStateMixin {
-  late bool isExists;
   late Future<Story> futureStory;
   final StoryService storyService = StoryService();
   late TabController _tabController;
   static const List<Tab> myTabs = <Tab>[
-    Tab(text: 'Chi tiết'),
-    Tab(text: 'Đánh giá'),
-    Tab(text: 'Danh sách chương'),
+    Tab(text: 'Chi tiết'),
+    Tab(text: 'Đánh giá'),
+    Tab(text: 'Danh sách chương'),
   ];
 
   @override
@@ -48,76 +50,82 @@ class _DetailStoryScreenState extends State<DetailStoryScreen>
     super.dispose();
   }
 
+  void _refresh() {
+    setState(() {
+      futureStory = storyService.fetchStoriesDetail(widget.story_id);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.thistle,
-      body: FutureBuilder<Story>(
-        future: futureStory,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          } else if (snapshot.hasError) {
-            return Center(
-              child: Text('Error: ${snapshot.error}'),
-            );
-          } else if (snapshot.hasData) {
-            final story = snapshot.data!;
-            return Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.pinkAccent),
-              ),
-              child: Column(
-                children: [
-                  AvatarDetailStory(
-                    image_path: story.image_path,
-                    title: story.title,
-                    author: story.author,
-                    story_id: story.story_id,
-                    chapters: story.chapters,
-                    story: story,
-                    is_vip: story.is_vip,
-                  ),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.grey[800],
-                      borderRadius: BorderRadius.only(
+    return RefreshIndicator(
+      onRefresh: () async {
+        _refresh();
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.thistle,
+        body: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: FutureBuilder<Story>(
+            future: futureStory,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              }
+              if (!snapshot.hasData) {
+                return const Center(child: Text('No data available'));
+              }
+
+              final story = snapshot.data!;
+              return Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.pinkAccent),
+                ),
+                child: Column(
+                  children: [
+                    AvatarDetailStory(
+                      image_path: story.image_path,
+                      title: story.title,
+                      author: story.author,
+                      story_id: story.story_id,
+                      chapters: story.chapters,
+                      story: story,
+                      is_vip: story.is_vip,
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.grey[800],
+                        borderRadius: const BorderRadius.only(
                           topLeft: Radius.circular(10),
-                          topRight: Radius.circular(10)),
+                          topRight: Radius.circular(10),
+                        ),
+                      ),
+                      padding: const EdgeInsets.all(8),
+                      child: buildStoryStatsRow(story),
                     ),
-                    padding: EdgeInsets.all(8),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        buildStat(story.favourite.toString(), 'Lượt thích'),
-                        buildStat(story.views.toString(), 'Độ hot'),
-                        buildStat(
-                            '${story.averageRating.toString()} ★', 'đánh giá'),
-                      ],
+                    Container(
+                      color: Colors.grey[800],
+                      child: TabBar(
+                        dividerColor: AppColors.magentaPurple,
+                        dividerHeight: 1,
+                        unselectedLabelColor: Colors.grey,
+                        indicatorColor: Colors.white,
+                        tabs: myTabs,
+                        controller: _tabController,
+                        labelColor: AppColors.magentaPurple,
+                      ),
                     ),
-                  ),
-                  Container(
-                    color: Colors.grey[800],
-                    child: TabBar(
-                      dividerColor: AppColors.magentaPurple,
-                      dividerHeight: 1,
-                      unselectedLabelColor: Colors.grey,
-                      indicatorColor: Colors.white,
-                      tabs: myTabs,
-                      controller: _tabController,
-                      labelColor: AppColors.magentaPurple,
-                    ),
-                  ),
-                  Expanded(
-                    child: TabBarView(
-                      controller: _tabController,
-                      children: [
-                        Container(
-                          decoration: BoxDecoration(color: Colors.grey[800]),
-                          child: SingleChildScrollView(
+                    Container(
+                      height: MediaQuery.of(context).size.height * 0.48,
+                      color: Colors.grey[800],
+                      child: TabBarView(
+                        controller: _tabController,
+                        children: [
+                          SingleChildScrollView(
                             child: BodyDetail(
                               story_id: story.story_id,
                               status: story.status,
@@ -125,70 +133,84 @@ class _DetailStoryScreenState extends State<DetailStoryScreen>
                               description: story.description,
                             ),
                           ),
-                        ),
-                        Container(
-                          decoration: BoxDecoration(color: Colors.grey[800]),
-                          child: SingleChildScrollView(
+                          SingleChildScrollView(
                             child: BodyRating(story_id: story.story_id),
                           ),
-                        ),
-                        Container(
-                          decoration: BoxDecoration(color: Colors.grey[800]),
-                          child: BodyChapter(
+                          BodyChapter(
                             story_id: story.story_id,
                             chapters: story.chapters,
+                            storyVip: story.is_vip,
+                            function: _refresh,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      color: Colors.grey[800],
+                      padding: const EdgeInsets.all(8.0),
+                      width: MediaQuery.of(context).size.width,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.pinkAccent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    decoration: BoxDecoration(color: Colors.grey[800]),
-                    padding: const EdgeInsets.all(8.0),
-                    width: MediaQuery.of(context).size.width,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.pinkAccent,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                        onPressed: () => NavigationUtils.navigateTo(
+                          context,
+                          ChapterScreen(
+                            chapter_id: story.chapters[0].chapter_id,
+                            chapters: story.chapters,
+                            story_id: story.story_id,
+                          ),
                         ),
-                      ),
-                      onPressed: () => NavigationUtils.navigateTo(
-                        context,
-                        ChapterScreen(
-                          chapter_id: story.chapters[0].chapter_id,
-                          chapters: story.chapters,
-                          story_id: story.story_id,
-                        ),
-                      ),
-                      child: Text(
-                        'Đọc truyện',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                        child: const Text(
+                          'Đọc truyện',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            );
-          } else {
-            return const Center(child: Text('No data available'));
-          }
-        },
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
       ),
     );
   }
 }
 
-Widget buildStat(String value, String label) {
+Widget buildStatColumn(String value, String label) {
   return Column(
     children: [
-      Text(value,
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-      Text(label, style: TextStyle(color: Colors.white70)),
+      Text(
+        value,
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      Text(
+        label,
+        style: const TextStyle(color: Colors.white70),
+      ),
+    ],
+  );
+}
+
+Widget buildStoryStatsRow(Story story) {
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: [
+      buildStatColumn(story.favourite.toString(), 'Lượt thích'),
+      buildStatColumn(story.views.toString(), 'Độ hot'),
+      buildStatColumn(
+          '${story.averageRating!.toStringAsFixed(1)} ★', 'đánh giá'),
     ],
   );
 }

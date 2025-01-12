@@ -77,22 +77,22 @@ Widget BuildSettingsSection(BuildContext context, bool isLoggedIn) {
             showArrow: true,
             isLoggedIn: isLoggedIn,
           ),
-          SizedBox(height: 8),
-          SettingsOptionItem(
-            icon: Icons.language,
-            title: 'Ngôn ngữ',
-            onTap: () {},
-            showArrow: true,
-            isLoggedIn: isLoggedIn,
-          ),
-          SizedBox(height: 8),
-          SettingsOptionItem(
-            icon: Icons.doorbell_rounded,
-            title: 'Thông Báo',
-            onTap: () {},
-            showArrow: true,
-            isLoggedIn: isLoggedIn,
-          ),
+          // SizedBox(height: 8),
+          // SettingsOptionItem(
+          //   icon: Icons.language,
+          //   title: 'Ngôn ngữ',
+          //   onTap: () {},
+          //   showArrow: true,
+          //   isLoggedIn: isLoggedIn,
+          // ),
+          // SizedBox(height: 8),
+          // SettingsOptionItem(
+          //   icon: Icons.doorbell_rounded,
+          //   title: 'Thông Báo',
+          //   onTap: () {},
+          //   showArrow: true,
+          //   isLoggedIn: isLoggedIn,
+          // ),
           SizedBox(height: 8),
           if (isLoggedIn)
             Column(

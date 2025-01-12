@@ -208,7 +208,7 @@ class AuthService {
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(
-        builder: (context) => MyHomePage(initialIndex: 4),
+        builder: (context) => MyHomePage(initialIndex: 3),
       ),
       (Route<dynamic> route) => false,
     );

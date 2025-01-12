@@ -2,7 +2,7 @@ class Chapter {
   final int chapter_id;
   final int views;
   final String title;
-  final bool is_vip;
+  late final bool is_vip;
   final DateTime created_at;
   final DateTime vip_expiration;
 

@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:provider/provider.dart';
 import 'package:story/core/services/image_service.dart';
 import 'package:story/core/services/story_service.dart';
 
 import '../../../core/services/history_service.dart';
+import '../../../core/services/provider/auth_provider_check.dart';
+import '../../../core/utils/navigation_utils.dart';
 import '../../../models/chapter.dart';
 import '../../../models/image.dart';
 import '../detail_story/widget/comment_page.dart';
+import '../login/login_screen.dart';
+import '../vip/vip_subscription_screen.dart';
 import 'chapter_bottom_sheet.dart';
 
 class ChapterScreen extends StatefulWidget {
@@ -71,6 +76,53 @@ class _ChapterScreenState extends State<ChapterScreen> {
       builder: (BuildContext context) {
         return CommentPage(story_id: widget.story_id);
       },
+    );
+  }
+
+  void handleChapterNavigation(bool isNext) {
+    final authProvider = Provider.of<AuthProviderCheck>(context, listen: false);
+    int currentIndex = widget.chapters
+        .indexWhere((chapter) => chapter.chapter_id == widget.chapter_id);
+
+    // Xác định chapter index mới dựa vào hướng di chuyển
+    int newIndex = isNext ? currentIndex + 1 : currentIndex - 1;
+
+    // Kiểm tra điều kiện biên
+    if (newIndex < 0 || newIndex >= widget.chapters.length) {
+      // Có thể thêm một thông báo cho người dùng ở đây
+      return;
+    }
+
+    Chapter targetChapter = widget.chapters[newIndex];
+
+    // Xử lý logic cho chapter VIP
+    if (targetChapter.is_vip) {
+      if (!authProvider.isLoggedIn) {
+        NavigationUtils.navigateTo(context, LoginScreen());
+        return;
+      }
+
+      if (!authProvider.currentUser!.isVip) {
+        NavigationUtils.navigateTo(context, VipSubscriptionPage());
+        return;
+      }
+    }
+
+    // Ghi lại lịch sử nếu user đã đăng nhập
+    if (authProvider.isLoggedIn) {
+      historyService.postHistory(widget.story_id, targetChapter.chapter_id);
+    }
+
+    // Chuyển đến chapter mới
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ChapterScreen(
+          chapter_id: targetChapter.chapter_id,
+          chapters: widget.chapters,
+          story_id: widget.story_id,
+        ),
+      ),
     );
   }
 
@@ -153,21 +205,7 @@ class _ChapterScreenState extends State<ChapterScreen> {
                       icon: Icons.arrow_back,
                       label: 'chương trước',
                       onPressed: () {
-                        int currentIndex = widget.chapters.indexWhere(
-                            (chapter) =>
-                                chapter.chapter_id == widget.chapter_id);
-                        if (currentIndex > 0) {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ChapterScreen(
-                                  chapter_id: widget
-                                      .chapters[currentIndex - 1].chapter_id,
-                                  chapters: widget.chapters,
-                                  story_id: widget.story_id,
-                                ),
-                              ));
-                        }
+                        handleChapterNavigation(false);
                       },
                     ),
                     _buildBottomBarItem(
@@ -198,22 +236,7 @@ class _ChapterScreenState extends State<ChapterScreen> {
                       icon: Icons.arrow_forward,
                       label: 'chương sau',
                       onPressed: () {
-                        int currentIndex = widget.chapters.indexWhere(
-                            (chapter) =>
-                                chapter.chapter_id == widget.chapter_id);
-                        int maxLengthIndex = widget.chapters.length - 1;
-                        if (currentIndex < maxLengthIndex) {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ChapterScreen(
-                                  chapter_id: widget
-                                      .chapters[currentIndex + 1].chapter_id,
-                                  chapters: widget.chapters,
-                                  story_id: widget.story_id,
-                                ),
-                              ));
-                        }
+                        handleChapterNavigation(true);
                       },
                     ),
                   ],

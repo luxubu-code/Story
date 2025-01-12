@@ -86,7 +86,7 @@ class _LoginScreenState extends State<LoginScreen> {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
-          builder: (context) => const MyHomePage(initialIndex: 4),
+          builder: (context) => const MyHomePage(initialIndex: 3),
         ),
         (route) => false,
       );
@@ -112,7 +112,7 @@ class _LoginScreenState extends State<LoginScreen> {
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
-            builder: (context) => const MyHomePage(initialIndex: 4),
+            builder: (context) => const MyHomePage(initialIndex: 3),
           ),
           (route) => false,
         );

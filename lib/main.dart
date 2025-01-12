@@ -27,7 +27,6 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-
   // Gọi Firebase API an toàn
   final firebaseApi = FirebaseApi();
   await firebaseApi.initNotifications();
@@ -74,9 +73,12 @@ class MyHomePage extends StatefulWidget {
 
   const MyHomePage({
     Key? key,
+    // Thêm validator cho initialIndex
     this.initialIndex = 0,
     this.rankTabIndex = 0,
-  }) : super(key: key);
+  })  : assert(initialIndex >= 0 && initialIndex <= 3),
+        // Đảm bảo initialIndex hợp lệ
+        super(key: key);
   static final GlobalKey<_MyHomePageState> globalKey = GlobalKey();
 
   @override
@@ -101,7 +103,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _onTap(int index) {
-    if (_selectedIndex != index) {
+    if (index >= 0 && index < _pages.length) {
       setState(() {
         _selectedIndex = index;
         _pageController.jumpToPage(index);

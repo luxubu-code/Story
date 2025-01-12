@@ -171,7 +171,7 @@ class _DefaultListState extends State<DefaultList> {
                           Row(
                             children: [
                               Text(
-                                story.averageRating.toString(),
+                                story.averageRating!.toStringAsFixed(1),
                                 style: const TextStyle(fontSize: 14),
                               ),
                               const SizedBox(width: 4),
